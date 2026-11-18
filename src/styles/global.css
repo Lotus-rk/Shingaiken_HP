@@ -1,9 +1,7 @@
 /* サイト全体のデザイントークン（案D）。色や余白を変えるときはここを直す。 */
-@import '@fontsource/zen-maru-gothic/500.css';
+/* Web フォントは見出しの Zen Maru Gothic（太字）だけ。日本語フォントは 1 太さで約 100KB の CSS になるため、
+   本文は各端末の標準フォント（Mac・iPhone はヒラギノ、Windows は游ゴシック、Android は Noto Sans CJK）を使う。 */
 @import '@fontsource/zen-maru-gothic/700.css';
-@import '@fontsource/noto-sans-jp/400.css';
-@import '@fontsource/noto-sans-jp/500.css';
-@import '@fontsource/noto-sans-jp/700.css';
 
 :root {
   /* 文字 */
@@ -33,7 +31,7 @@
   --kind-review-fg: #56409a;
   /* 書体 */
   --font-heading: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif;
-  --font-body: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+  --font-body: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Yu Gothic', YuGothic, Meiryo, 'Noto Sans JP', 'Noto Sans CJK JP', sans-serif;
   /* 角丸 */
   --radius-button: 8px;
   --radius-box: 14px;

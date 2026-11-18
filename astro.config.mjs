@@ -14,4 +14,10 @@ export default defineConfig({
   trailingSlash: 'always',
   build: { format: 'directory' },
   integrations: [sitemap()],
+  vite: {
+    build: {
+      // フォントの小さな分割ファイルを CSS に埋め込まない（埋め込むと CSS が 600KB 近くになり、表示が遅れる）
+      assetsInlineLimit: (filePath) => (/\.(woff2?|ttf|otf)$/.test(filePath) ? false : undefined),
+    },
+  },
 });

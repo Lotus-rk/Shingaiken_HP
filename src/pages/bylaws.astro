@@ -1,26 +1,14 @@
 ---
-// 会則
-// TODO：正式な条文がまだ手元にない。会の原本（または現行サイトの会則）の本文を、そのまま貼り付ける。
-// 第1条は CLAUDE.md に要旨があるが、要旨を条文として載せてはいけないので、原文を貼ること。
-// 条文が入ったら、下の .bylaws-note を削除し、description も「会則の全文」に合わせて直す。
-//
-// 原文を貼るときの形（例）。条の番号・見出し・本文はすべて原文どおりにする：
-//   const articles = [
-//     { number: '第1条', heading: '（原文の見出し）', text: ['（原文の本文。段落ごとに 1 要素）'] },
-//     ...
-//   ];
-//   {articles.map((a) => (
-//     <section class="bylaws-article">
-//       <h2>{a.number}（{a.heading}）</h2>
-//       {a.text.map((t) => <p>{t}</p>)}
-//     </section>
-//   ))}
-// 附則（施行日）も原文の文言のまま載せる。
+// 会則。本文は src/data/bylaws.md に書く（条文を直すときはそのファイルだけを更新する）。
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHeader from '../components/PageHeader.astro';
+import { Content, frontmatter } from '../data/bylaws.md';
 
+const ready = frontmatter.ready === true;
 const title = '会則';
-const description = '新しい外国語実践研究会（新外研）の会則についてのページです。会則の本文は準備ができしだい掲載します。';
+const description = ready
+  ? '新しい外国語実践研究会（新外研）の会則です。目的・名称・事業・会員・役員・会計・会議などを定めています。'
+  : '新しい外国語実践研究会（新外研）の会則についてのページです。会則の本文は準備ができしだい掲載します。';
 ---
 
 <BaseLayout title={title} description={description}>
@@ -28,7 +16,17 @@ const description = '新しい外国語実践研究会（新外研）の会則�
 
   <section class="section">
     <div class="container prose">
-      <p class="bylaws-note" role="note">会則は2026年5月4日に施行されました。本文は準備ができしだい掲載します。</p>
+      {
+        ready ? (
+          <>
+            <p class="bylaws-heading">新しい外国語実践研究会 会則</p>
+            <Content />
+            {frontmatter.note && <p class="bylaws-meta">{frontmatter.note}</p>}
+          </>
+        ) : (
+          <p class="bylaws-note" role="note">会則は2026年5月4日に施行されました。本文は準備ができしだい掲載します。</p>
+        )
+      }
     </div>
   </section>
 </BaseLayout>
@@ -39,5 +37,16 @@ const description = '新しい外国語実践研究会（新外研）の会則�
     background: var(--color-next-bg);
     border-left: 4px solid var(--color-next-label);
     color: var(--color-text);
+  }
+  .bylaws-heading {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 18px;
+  }
+  .bylaws-meta {
+    margin-top: 2em;
+    text-align: right;
+    color: var(--color-text-note);
+    font-size: 14px;
   }
 </style>
