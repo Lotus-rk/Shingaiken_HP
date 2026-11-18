@@ -1,0 +1,118 @@
+---
+// 新外研について
+// TODO(代表の確認待ち)：このページの文言はすべて仮置き。代表に確認してから公開する。
+// 目的の文は会則第1条の要旨から書き起こしたもので、条文そのものではない。
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { site } from '../data/site';
+import { withBase } from '../lib/url';
+
+const title = '新外研について';
+const description =
+  '新しい外国語実践研究会（新外研）の目的と活動、研究会への参加方法、事務局についてご案内します。小学校外国語教育の実践研究に取り組む研究会です。';
+
+const activities = [
+  {
+    name: '公開授業研究会',
+    text: '実際の授業を公開し、参加者とともに授業を見て、話し合います。これまで東京学芸大学附属世田谷小学校で開いています。',
+  },
+  {
+    name: 'オンライン授業検討会',
+    text: 'オンラインで公開授業を見て、授業について検討します。',
+  },
+  {
+    name: '新外研 Students',
+    text: '大学院生5名が企画し、2026年6月にオンラインで6つのプログラムを開いた研究会です。',
+  },
+  {
+    name: 'セミナー',
+    text: '2026年11月には、有意味反復練習をテーマにしたセミナーを Zoom で開きました。',
+  },
+];
+---
+
+<BaseLayout title={title} description={description}>
+  <PageHeader title={title} />
+
+  <section class="section" aria-labelledby="who">
+    <div class="container prose">
+      <h2 id="who">新外研とは</h2>
+      <p>
+        {site.name}（略称：{site.shortName}〔しんがいけん〕）は、{site.foundedLabel}に発足した、小学校の外国語教育を中心とする実践研究の会です。
+      </p>
+      <p>
+        授業づくりを通して、子どもの言語能力を育てる方法を探究し、その成果を広く共有することを目的としています。教室での実践と学術研究をつなぎ、教師の専門性と教育の質を高めることを目指しています。
+      </p>
+
+      <h2 id="activities">主な活動</h2>
+      <dl class="about-activities">
+        {
+          activities.map((a) => (
+            <div class="about-activities__item">
+              <dt>{a.name}</dt>
+              <dd>{a.text}</dd>
+            </div>
+          ))
+        }
+      </dl>
+      <p>
+        これまでに開いた研究会は<a href={withBase('/events/')}>研究会の一覧</a>で、会の歩みは<a href={withBase('/history/')}>沿革</a>でご覧いただけます。
+      </p>
+
+      <h2 id="join">参加について</h2>
+      <ul>
+        <li>年会費はありません。</li>
+        <li>研究会ごとに参加費をいただくことがあります。金額は各研究会のページでお知らせします。</li>
+        <li>参加のお申し込みは、各研究会のページから Peatix で受け付けています。</li>
+      </ul>
+      <p>
+        ご質問は、メール（{site.emailDisplay}）でお問い合わせください。送信の際は (a) を @ に置き換えてください。
+      </p>
+
+      <h2 id="office">事務局</h2>
+      <p>{site.office.label}</p>
+
+      <h2 id="more">会の情報</h2>
+      <ul class="about-links">
+        <li><a class="text-link" href={withBase('/bylaws/')}>会則 ›</a></li>
+        <li><a class="text-link" href={withBase('/officers/')}>役員 ›</a></li>
+        <li><a class="text-link" href={withBase('/history/')}>沿革 ›</a></li>
+        <li><a class="text-link" href={withBase('/events/')}>研究会の一覧 ›</a></li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .about-activities {
+    margin: 0 0 1.2em;
+    border-top: 1px solid var(--color-line);
+  }
+  .about-activities__item {
+    display: grid;
+    grid-template-columns: 12em 1fr;
+    gap: 4px 20px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .about-activities dt {
+    font-weight: 700;
+    color: var(--color-text);
+  }
+  .about-activities dd {
+    margin: 0;
+    color: var(--color-text-sub);
+  }
+  .about-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+    padding: 0;
+    list-style: none;
+  }
+  @media (max-width: 640px) {
+    .about-activities__item {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

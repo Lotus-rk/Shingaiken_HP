@@ -1,0 +1,74 @@
+---
+import { site, footerNav } from '../data/site';
+import { withBase } from '../lib/url';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer" id="contact">
+  <div class="container site-footer__inner">
+    <div>
+      <p class="site-footer__name">{site.fullName}</p>
+      <p>事務局：{site.office.label}</p>
+      <p>お問い合わせ：{site.emailDisplay}<span class="site-footer__note">（(a) を @ に替えて送信してください）</span></p>
+      <p class="site-footer__sns">
+        <a href={site.sns.instagram}>Instagram</a>
+        <a href={site.sns.x}>X</a>
+        {site.sns.peatix && <a href={site.sns.peatix}>Peatix</a>}
+      </p>
+    </div>
+    <nav aria-label="フッターメニュー">
+      <ul class="site-footer__nav">
+        {footerNav.map((item) => (
+          <li><a href={withBase(item.href)}>{item.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+  <p class="site-footer__copy container">© {year} {site.name}</p>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--color-bg-footer);
+    padding: 40px 0 24px;
+    font-size: 14px;
+    color: var(--color-text-sub);
+  }
+  .site-footer p {
+    margin: 0 0 4px;
+  }
+  .site-footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 24px 40px;
+  }
+  .site-footer__name {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--color-text);
+  }
+  .site-footer__note {
+    font-size: 12px;
+    color: var(--color-text-note);
+  }
+  .site-footer__sns {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px !important;
+  }
+  .site-footer__nav {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: 4px 32px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .site-footer__copy {
+    margin-top: 28px !important;
+    font-size: 12px;
+    color: var(--color-text-note);
+  }
+</style>

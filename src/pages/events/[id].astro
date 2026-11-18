@@ -1,0 +1,216 @@
+---
+// 研究会の個別ページ。src/content/events/ の 1 ファイルが 1 ページになる（URL はファイル名）。
+import { render } from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import EventFacts from '../../components/events/EventFacts.astro';
+import { eventPath, getAllEvents, getEvents, jstParts, kindOf, toJstIso, type EventEntry } from '../../lib/events';
+import { site } from '../../data/site';
+import { absoluteUrl, withBase } from '../../lib/url';
+
+export async function getStaticPaths() {
+  const events = await getAllEvents();
+  return events.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+interface Props {
+  entry: EventEntry;
+}
+const { entry } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+
+const { upcoming } = await getEvents();
+const isUpcoming = upcoming.some((e) => e.id === entry.id);
+const kind = kindOf(entry);
+const fullName = d.subtitle ? `${d.title}――${d.subtitle}` : d.title;
+
+// ---- 構造化データ（schema.org Event ＋ BreadcrumbList） ----
+const pageUrl = absoluteUrl(eventPath(entry), Astro.site);
+const homeUrl = absoluteUrl('/', Astro.site);
+const eventsUrl = absoluteUrl('/events/', Astro.site);
+
+/** 開始が 0:00（日本時間）のものは時刻未定とみなし、日付だけを出す */
+const startHasTime = (() => {
+  const p = jstParts(d.start);
+  return p.hour !== 0 || p.minute !== 0;
+})();
+const schemaDate = (date: Date) => (startHasTime ? toJstIso(date) : toJstIso(date).slice(0, 10));
+
+/** 「東京都世田谷区深沢4-10-1」を都道府県・市区町村・番地に分ける（分けられなければそのまま） */
+function postalAddress(address: string) {
+  const m = address.match(/^(東京都|北海道|(?:京都|大阪)府|.{2,3}県)(.+?[市区町村])(.+)$/);
+  return m
+    ? { '@type': 'PostalAddress', addressRegion: m[1], addressLocality: m[2], streetAddress: m[3], addressCountry: 'JP' }
+    : { '@type': 'PostalAddress', streetAddress: address, addressCountry: 'JP' };
+}
+
+const place = {
+  '@type': 'Place',
+  name: d.venue,
+  ...(d.venueAddress ? { address: postalAddress(d.venueAddress) } : {}),
+};
+const virtual = { '@type': 'VirtualLocation', url: d.apply ?? pageUrl };
+const location = d.format === 'online' ? virtual : d.format === 'onsite' ? place : [place, virtual];
+
+const attendanceMode = {
+  online: 'https://schema.org/OnlineEventAttendanceMode',
+  onsite: 'https://schema.org/OfflineEventAttendanceMode',
+  hybrid: 'https://schema.org/MixedEventAttendanceMode',
+}[d.format];
+
+const offers =
+  d.fee && d.apply
+    ? [
+        { name: '一般', price: d.fee.general },
+        ...(d.fee.student !== undefined ? [{ name: '学生', price: d.fee.student }] : []),
+      ].map((o) => ({
+        '@type': 'Offer',
+        name: o.name,
+        price: o.price,
+        priceCurrency: 'JPY',
+        url: d.apply,
+        ...(isUpcoming ? { availability: 'https://schema.org/InStock' } : {}),
+      }))
+    : undefined;
+
+const eventLd = {
+  '@type': 'Event',
+  '@id': `${pageUrl}#event`,
+  name: fullName,
+  description: d.summary,
+  startDate: schemaDate(d.start),
+  ...(d.end ? { endDate: schemaDate(d.end) } : {}),
+  eventStatus: 'https://schema.org/EventScheduled',
+  eventAttendanceMode: attendanceMode,
+  location,
+  ...(offers ? { offers } : {}),
+  organizer: { '@type': 'Organization', '@id': `${homeUrl}#organization`, name: site.name, url: homeUrl },
+  ...(d.speakers.length > 0
+    ? {
+        performer: d.speakers.map((s) => ({
+          '@type': 'Person',
+          name: s.name,
+          ...(s.affiliation ? { affiliation: { '@type': 'Organization', name: s.affiliation } } : {}),
+        })),
+      }
+    : {}),
+  url: pageUrl,
+  inLanguage: 'ja',
+};
+
+const breadcrumbLd = {
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'ホーム', item: homeUrl },
+    { '@type': 'ListItem', position: 2, name: '研究会', item: eventsUrl },
+    { '@type': 'ListItem', position: 3, name: d.title, item: pageUrl },
+  ],
+};
+
+const jsonLd = { '@context': 'https://schema.org', '@graph': [eventLd, breadcrumbLd] };
+---
+
+<BaseLayout title={d.title} description={d.summary} ogType="article" jsonLd={jsonLd}>
+  <article>
+    <PageHeader title={d.title} subtitle={d.subtitle} breadcrumbs={[{ label: '研究会', href: '/events/' }]}>
+      <span slot="before-title" class={`kind ${kind.className}`}>{kind.label}</span>
+    </PageHeader>
+
+    <section class="section event-info" aria-labelledby="facts-title">
+      <div class="container">
+        <div class="event-info__inner">
+          <h2 class="visually-hidden" id="facts-title">開催情報</h2>
+          {
+            isUpcoming ? (
+              d.apply && (
+                <p class="event-info__apply">
+                  <a class="button button--primary" href={d.apply} rel="noopener">
+                    Peatix で申し込む
+                  </a>
+                </p>
+              )
+            ) : (
+              <p class="event-info__ended">この研究会は終了しました。</p>
+            )
+          }
+          <EventFacts entry={entry} upcoming={isUpcoming} />
+        </div>
+      </div>
+    </section>
+
+    <section class="section event-body">
+      <div class="container">
+        <div class="prose">
+          <Content />
+        </div>
+        {
+          d.images.length > 0 && (
+            <div class="event-photos">
+              <h2 class="visually-hidden">写真</h2>
+              {d.images.map((img) => (
+                <figure class="event-photos__item">
+                  <Image src={img.src} alt={img.alt} widths={[480, 720, 960]} sizes="(min-width: 800px) 760px, 100vw" />
+                </figure>
+              ))}
+            </div>
+          )
+        }
+        <p class="event-body__back">
+          <a class="text-link" href={withBase('/events/')}>‹ 研究会一覧へ戻る</a>
+        </p>
+      </div>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  .event-info {
+    padding: 40px 0 8px;
+  }
+  .event-info__inner {
+    max-width: var(--width-text);
+  }
+  .event-info__apply {
+    margin: 0 0 20px;
+  }
+  .event-info__ended {
+    margin: 0 0 16px;
+    padding: 10px 16px;
+    background: var(--color-bg-tint);
+    border-left: 4px solid var(--color-text-note);
+    font-weight: 500;
+    color: var(--color-text-sub);
+  }
+  .event-body {
+    padding-top: 40px;
+  }
+  /* 本文の最初の見出しは上の余白を詰める */
+  .event-body .prose > :global(:first-child) {
+    margin-top: 0;
+  }
+  .event-photos {
+    display: grid;
+    gap: 24px;
+    max-width: var(--width-text);
+    margin: 32px 0 0;
+  }
+  .event-photos__item {
+    margin: 0;
+  }
+  .event-photos__item :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-button);
+  }
+  .event-body__back {
+    margin: 40px 0 0;
+  }
+  @media (max-width: 640px) {
+    .event-info {
+      padding: 28px 0 4px;
+    }
+  }
+</style>

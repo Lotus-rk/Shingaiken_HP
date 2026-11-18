@@ -1,0 +1,77 @@
+# 変更の点検。公開の前に、壊れたページやリンク切れがないかを確かめる。
+# プルリクエスト（PR）と、main 以外のブランチへの push で動く。ここで失敗すると PR に赤い印が付く。
+# main への push は deploy.yml がビルドするので、ここでは扱わない。
+
+name: Check
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# 同じブランチで新しい push があったら、古い点検は取り消す
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # 型と研究会データ（必須項目の抜け・書き方の誤り）の点検
+      - name: astro check
+        run: npx astro check
+
+      # わざとサブパス（/linkcheck-base/）の下に組み立てる。
+      # withBase() を通していないサイト内リンクがあると、下のリンク検査で切れたリンクとして見つかる。
+      - name: Build (under a sub-path)
+        run: npx astro build --outDir _linkcheck/linkcheck-base
+        env:
+          SITE_URL: https://example.invalid
+          BASE_PATH: /linkcheck-base/
+
+      # サイト内リンクの検査（ネットワークを使わない）。1 つでも切れていたら失敗にする。
+      - name: Check internal links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --offline
+            --no-progress
+            --root-dir ${{ github.workspace }}/_linkcheck
+            --index-files index.html
+            '_linkcheck/**/*.html'
+          fail: true
+          jobSummary: true
+
+      # 外部リンク（Peatix・SNS など）の検査。相手側の都合で失敗することがあるので、結果は参考扱い（PR は止めない）。
+      - name: Check external links (non-blocking)
+        uses: lycheeverse/lychee-action@v2
+        continue-on-error: true
+        with:
+          args: >-
+            --no-progress
+            --max-retries 2
+            --timeout 20
+            --accept '100..=103,200..=299,429'
+            --exclude '^https://example\.invalid'
+            --exclude '^https://shingaiken\.github\.io'
+            --exclude '^https://(www\.)?instagram\.com'
+            --exclude '^https://(x|twitter)\.com'
+            '_linkcheck/**/*.html'
+          fail: false
+          failIfEmpty: false
+          jobSummary: true
+          output: lychee/external.md

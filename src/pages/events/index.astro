@@ -1,0 +1,106 @@
+---
+// 研究会一覧：これからの研究会（なければ準備中の案内）と、過去の研究会（新しい順）
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EventList from '../../components/EventList.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import { getEvents } from '../../lib/events';
+import { site } from '../../data/site';
+import { absoluteUrl } from '../../lib/url';
+
+const { upcoming, past } = await getEvents();
+
+const description =
+  '新しい外国語実践研究会（新外研）が開く研究会の一覧です。公開授業研究会、オンライン授業検討会、セミナーなど、これからの研究会と過去の研究会の開催情報・開催報告をご覧いただけます。';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'ホーム', item: absoluteUrl('/', Astro.site) },
+    { '@type': 'ListItem', position: 2, name: '研究会', item: absoluteUrl('/events/', Astro.site) },
+  ],
+};
+---
+
+<BaseLayout title="研究会" description={description} jsonLd={jsonLd}>
+  <PageHeader
+    title="研究会"
+    lead={`${site.shortName}が開く研究会のご案内です。各研究会のページでは、開催情報と開催後の報告をご覧いただけます。`}
+  />
+
+  <section class="section" aria-labelledby="upcoming-title">
+    <div class="container">
+      <h2 class="section-title" id="upcoming-title">これからの研究会</h2>
+      {
+        upcoming.length > 0 ? (
+          <div class="upcoming">
+            <EventList events={upcoming} label="これからの研究会" />
+          </div>
+        ) : (
+          <div class="upcoming upcoming--empty">
+            <p>次回の研究会は準備中です。</p>
+            <p>
+              決まりしだい、このページと
+              <a href={site.sns.instagram} rel="noopener">
+                Instagram
+              </a>
+              ・
+              <a href={site.sns.x} rel="noopener">
+                X
+              </a>
+              でお知らせします。
+            </p>
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="section section--tint" aria-labelledby="past-title">
+    <div class="container">
+      <h2 class="section-title" id="past-title">過去の研究会</h2>
+      {
+        past.length > 0 ? (
+          <div class="past">
+            <EventList events={past} label="過去の研究会" />
+          </div>
+        ) : (
+          <p>まだありません。</p>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .upcoming {
+    padding: 8px 24px;
+    background: var(--color-next-bg);
+    border-radius: var(--radius-button);
+  }
+  .upcoming--empty {
+    padding: 20px 24px;
+  }
+  .upcoming--empty p {
+    margin: 0;
+  }
+  .upcoming--empty p + p {
+    margin-top: 4px;
+    color: var(--color-text-sub);
+  }
+  .past {
+    background: var(--color-bg);
+    padding: 0 16px;
+  }
+  @media (max-width: 640px) {
+    .upcoming {
+      padding: 4px 16px;
+    }
+    .upcoming--empty {
+      padding: 16px;
+    }
+    .past {
+      padding: 0 12px;
+    }
+  }
+</style>

@@ -1,0 +1,125 @@
+# サイトを組み立てて GitHub Pages に公開する。
+# 動くのは (1) main への push、(2) Actions 画面の「Run workflow」、(3) 毎日 1 回の定時実行。
+#
+# 事前設定（リポジトリごとに 1 回）：Settings → Pages → Build and deployment → Source を「GitHub Actions」にする。
+# 公式の手順：https://docs.astro.build/en/guides/deploy/github/
+# （withastro/action でも同じことができるが、Node の版を .nvmrc から読むこと・SITE_URL/BASE_PATH を
+#   明示的に渡すことを読みやすくするため、手順を一つずつ書いている）
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    # 毎日 00:10（日本時間）に再ビルドする。cron は UTC で書くので 15:10（前日）。
+    # 静的サイトは日付が過ぎても勝手には変わらない。毎日組み立て直すことで、
+    # 開催日を過ぎた研究会が「次回の研究会」から「過去の研究会」へ移る。
+    # 毎時 0 分は GitHub 側が混み合って遅れやすいので 10 分にずらしている。
+    # 定時実行は既定のブランチ（main）にあるこのファイルだけが対象になる。
+    - cron: '10 15 * * *'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 公開は同時に 1 つだけ。実行中の公開は途中で止めずに最後まで終わらせる（GitHub 公式の雛形と同じ）。
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v6
+
+      - run: npm ci
+
+      - name: Build
+        run: npx astro build
+        env:
+          # 公開先の URL。例：origin = https://shingaiken.github.io、base_path = ""（ルート）または "/リポジトリ名"
+          SITE_URL: ${{ steps.pages.outputs.origin }}
+          BASE_PATH: ${{ steps.pages.outputs.base_path || '/' }}
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+
+  # ----------------------------------------------------------------------------
+  # 定時実行が止まらないようにするための見張り（定時実行のときだけ動く）。
+  #
+  # GitHub の決まり：公開（public）リポジトリでは、60 日間リポジトリに動きがないと、
+  # 定時実行（schedule）のあるワークフローは自動で無効にされ、push を含むすべてのきっかけで動かなくなる。
+  # https://docs.github.com/en/actions/how-tos/manage-workflow-runs/disable-and-enable-workflows
+  # 何が「動き」に数えられるかは公式には書かれていない。確実に数えられるのはコミット（研究会の追加など）。
+  #
+  # そこで二段構えにしている。
+  #  1. 自分自身を「有効にする」API（PUT .../actions/workflows/deploy.yml/enable）を毎日呼ぶ。
+  #     広く使われていた keepalive の方法だが、これで 60 日の数え直しになることは GitHub の文書には
+  #     書かれていない（利用者の報告どまり）。害はないので、念のため行う。
+  #  2. 確実な方法として、main への最後のコミットから 45 日たったら Issue を 1 件立てて
+  #     担当者（リポジトリを Watch している人）にメールで知らせる。何か 1 つコミットすれば数え直しになる。
+  # 空のコミットを自動で積む方法は、履歴が汚れるうえ GitHub の利用規約の面でも勧められないので使わない。
+  # 万一止まったら：Actions → Deploy to GitHub Pages →「Enable workflow」を押す（README 参照）。
+  # ----------------------------------------------------------------------------
+  keepalive:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Re-enable this workflow (best effort)
+        continue-on-error: true
+        run: gh api --method PUT "repos/$REPO/actions/workflows/deploy.yml/enable"
+
+      - name: Open a reminder issue after 45 days without commits
+        continue-on-error: true
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          TITLE: '【自動】45日間更新がありません：毎日の自動更新が止まる前に、何か1つ更新してください'
+        run: |
+          last=$(gh api "repos/$REPO/commits/$DEFAULT_BRANCH" --jq '.commit.committer.date')
+          days=$(( ( $(date -u +%s) - $(date -u -d "$last" +%s) ) / 86400 ))
+          echo "Last commit on $DEFAULT_BRANCH: $last ($days days ago)"
+          if [ "$days" -lt 45 ]; then exit 0; fi
+          open=$(gh issue list --repo "$REPO" --state open --limit 200 --json title --jq '[.[] | select(.title == env.TITLE)] | length')
+          if [ "$open" -gt 0 ]; then echo "Reminder already open."; exit 0; fi
+          gh issue create --repo "$REPO" --title "$TITLE" --body "$(cat <<EOF
+          main ブランチへの最後の更新から ${days} 日たちました。
+
+          GitHub の決まりで、60 日間リポジトリに動きがないと、研究会の一覧を毎日切り替える自動更新が止まります。
+          研究会の告知や開催報告を追加する、README の誤字を直すなど、何か 1 つ main に変更を保存（コミット）してください。
+          保存したら、この Issue は閉じてかまいません。
+
+          もし止まってしまったら：Actions タブ → 「Deploy to GitHub Pages」→「Enable workflow」を押してください。
+          EOF
+          )"

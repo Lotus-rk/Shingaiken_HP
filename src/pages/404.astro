@@ -1,0 +1,37 @@
+---
+// ページが見つからないとき（GitHub Pages は dist/404.html を自動で使う）
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { withBase } from '../lib/url';
+
+const title = 'ページが見つかりません';
+const description =
+  'お探しのページは見つかりませんでした。新しい外国語実践研究会（新外研）のホームまたは研究会の一覧から、目的のページをお探しください。';
+---
+
+<BaseLayout title={title} description={description} noindex>
+  <section class="section">
+    <div class="container prose notfound">
+      <h1>ページが見つかりません</h1>
+      <p>
+        お探しのページは、移動したか削除された可能性があります。お手数ですが、下のリンクから目的のページをお探しください。
+      </p>
+      <p class="notfound__actions">
+        <a class="button button--primary" href={withBase('/')}>ホームへ戻る</a>
+        <a class="button button--secondary" href={withBase('/events/')}>研究会の一覧を見る</a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .notfound h1 {
+    font-size: 28px;
+    margin: 0 0 16px;
+  }
+  .notfound__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+  }
+</style>

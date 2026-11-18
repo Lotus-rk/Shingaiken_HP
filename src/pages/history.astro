@@ -1,0 +1,93 @@
+---
+// 沿革。研究会の行は src/content/events/ から自動で作る（開催日を過ぎたもの。名称は shortTitle、なければ title）。
+// 研究会以外のできごと（発足・会則施行など）だけを、下の milestones に手で書く。
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { eventPath, getEvents, jstParts } from '../lib/events';
+import { withBase } from '../lib/url';
+
+const title = '沿革';
+const description =
+  '新しい外国語実践研究会（新外研）の沿革です。2026年2月の発足から、公開授業研究会やオンライン授業検討会など、これまでの歩みを年月日順にご紹介します。';
+
+interface HistoryItem {
+  /** 表示する年月日 */
+  date: string;
+  /** 機械可読の日付（YYYY-MM または YYYY-MM-DD）。並べ替えにも使う */
+  datetime: string;
+  text: string;
+  /** 研究会ページへのリンク（あれば） */
+  href?: string;
+}
+
+/** 研究会以外のできごと */
+const milestones: HistoryItem[] = [
+  { date: '2026年2月', datetime: '2026-02', text: '新しい外国語実践研究会 発足' },
+  { date: '2026年5月4日', datetime: '2026-05-04', text: '会則施行' },
+];
+
+const pad = (n: number) => String(n).padStart(2, '0');
+const { past } = await getEvents();
+const eventItems: HistoryItem[] = past.map((e) => {
+  const p = jstParts(e.data.start);
+  return {
+    date: `${p.year}年${p.month}月${p.day}日`,
+    datetime: `${p.year}-${pad(p.month)}-${pad(p.day)}`,
+    text: e.data.shortTitle ?? e.data.title,
+    href: withBase(eventPath(e)),
+  };
+});
+
+// 日付の古い順。同じ月の中では「2026-02」（月だけ）が先に来る
+const items = [...milestones, ...eventItems].sort((a, b) => a.datetime.localeCompare(b.datetime));
+---
+
+<BaseLayout title={title} description={description}>
+  <PageHeader title={title} />
+
+  <section class="section">
+    <div class="container prose">
+      <ol class="history">
+        {
+          items.map((h) => (
+            <li class="history__item">
+              <time class="history__date" datetime={h.datetime}>
+                {h.date}
+              </time>
+              <span class="history__text">{h.href ? <a href={h.href}>{h.text}</a> : h.text}</span>
+            </li>
+          ))
+        }
+      </ol>
+      <p>
+        各研究会の内容は<a href={withBase('/events/')}>研究会の一覧</a>からご覧いただけます。
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .history {
+    margin: 0 0 1.6em;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--color-line);
+  }
+  .history__item {
+    display: grid;
+    grid-template-columns: 9em 1fr;
+    gap: 2px 20px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .history__date {
+    font-weight: 700;
+    color: var(--color-main);
+    font-variant-numeric: tabular-nums;
+  }
+  @media (max-width: 640px) {
+    .history__item {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
