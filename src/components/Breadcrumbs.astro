@@ -1,0 +1,60 @@
+---
+// パンくずリスト（ホーム › … › 今のページ）。PageHeader と研究会の個別ページで使う。
+import { withBase } from '../lib/url';
+
+export interface Crumb {
+  label: string;
+  /** サイト内パス（例 '/about/'）。最後の項目（今いるページ）は省略する */
+  href?: string;
+}
+
+interface Props {
+  /** ホームの次から今のページまで（最後が今のページ） */
+  items: Crumb[];
+}
+const crumbs: Crumb[] = [{ label: 'ホーム', href: '/' }, ...Astro.props.items];
+---
+
+<nav class="container crumbs" aria-label="パンくずリスト">
+  <ol class="crumbs__list">
+    {
+      crumbs.map((c, i) => (
+        <li>
+          {c.href && i < crumbs.length - 1 ? (
+            <a href={withBase(c.href)}>{c.label}</a>
+          ) : (
+            <span aria-current="page">{c.label}</span>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</nav>
+
+<style>
+  .crumbs {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  .crumbs__list {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 13px;
+    color: var(--color-text-note);
+  }
+  .crumbs__list li + li::before {
+    content: '›'; /* 古いブラウザ向けの予備 */
+    content: '›' / ''; /* 区切りの飾りなので読み上げない */
+    margin: 0 8px;
+    color: var(--color-text-note);
+  }
+  .crumbs__list a {
+    color: var(--color-main);
+  }
+  .crumbs__list a:hover {
+    color: var(--color-main-hover);
+  }
+</style>

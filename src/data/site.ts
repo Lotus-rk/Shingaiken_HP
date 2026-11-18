@@ -48,7 +48,8 @@ export const mainNav = [
   { href: '/about/', label: '新外研について' },
   { href: '/events/', label: '研究会' },
   { href: '/history/', label: '沿革' },
-  { href: '/#contact', label: 'お問い合わせ' },
+  // お問い合わせ先は全ページのフッター（id="contact"）にあるので、今のページのフッターへ移る
+  { href: '#contact', label: 'お問い合わせ' },
 ] as const;
 
 /** フッターメニュー */

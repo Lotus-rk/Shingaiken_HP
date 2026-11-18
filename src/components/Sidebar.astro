@@ -1,0 +1,83 @@
+---
+// トップの右の欄（スマートフォンでは下に回る）：会の概要・参加のご案内・会の情報・SNS。
+// 事務局とお問い合わせ先はフッターに載せているので、ここには置かない。
+// 箱は見出し（h2）だけで区切り、ランドマーク（section＋名前）にはしない（読み上げのランドマーク一覧が増えすぎるため）。
+// 箱の形（.side-box）とリンクの一覧（.side-links）は src/styles/global.css にある。
+import { site } from '../data/site';
+import { withBase } from '../lib/url';
+import InfoLinks from './InfoLinks.astro';
+
+interface Props {
+  /** これまでに開いた研究会の数（ビルド時に数える） */
+  pastCount: number;
+}
+const { pastCount } = Astro.props;
+---
+
+<aside class="side" aria-label="会の案内">
+  <div class="side-box">
+    <h2 class="side-box__title">新外研について</h2>
+    <dl class="side__facts">
+      <div><dt>発足</dt><dd>{site.foundedLabel}</dd></div>
+      <div><dt>事務局</dt><dd>{site.office.region}{site.office.locality}</dd></div>
+      <div><dt>研究会</dt><dd>これまでに{pastCount}回</dd></div>
+    </dl>
+    <p class="side-box__more"><a class="text-link" href={withBase('/about/')}>会の目的と活動 <span aria-hidden="true">›</span></a></p>
+  </div>
+
+  <div class="side-box">
+    <h2 class="side-box__title">参加のご案内</h2>
+    <ul class="side__notes">
+      <li>年会費はありません。</li>
+      <li>研究会ごとに参加費をいただくことがあります。</li>
+      <li>お申し込みは、各研究会のページから Peatix で受け付けています。</li>
+    </ul>
+    <p class="side-box__more"><a class="text-link" href={withBase('/about/#join')}>参加について <span aria-hidden="true">›</span></a></p>
+  </div>
+
+  <InfoLinks />
+
+  <div class="side-box">
+    <h2 class="side-box__title">SNS</h2>
+    <ul class="side-links">
+      <li><a href={site.sns.instagram} rel="noopener">Instagram（shingaiken.english）</a></li>
+      <li><a href={site.sns.x} rel="noopener">X（@shingaiken）</a></li>
+      {site.sns.peatix && <li><a href={site.sns.peatix} rel="noopener">Peatix</a></li>}
+    </ul>
+  </div>
+</aside>
+
+<style>
+  .side {
+    display: grid;
+    gap: 20px;
+    align-content: start;
+  }
+  /* 発足・事務局・研究会の回数：左に項目名をそろえた小さな表 */
+  .side__facts {
+    margin: 0;
+    padding: 6px 12px 0;
+  }
+  .side__facts div {
+    display: grid;
+    grid-template-columns: 4em 1fr;
+    gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px dotted var(--color-line);
+  }
+  .side__facts dt {
+    font-weight: 700;
+    color: var(--color-text-sub);
+  }
+  .side__facts dd {
+    margin: 0;
+  }
+  .side__notes {
+    margin: 0;
+    padding: 10px 12px 0 2.2em;
+    line-height: 1.7;
+  }
+  .side__notes li + li {
+    margin-top: 4px;
+  }
+</style>

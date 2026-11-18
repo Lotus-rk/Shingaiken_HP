@@ -1,6 +1,7 @@
 ---
-// 研究会のお知らせリスト（日付・色付き種別ラベル・タイトル・会場）。トップと研究会一覧で共用。
-import { eventPath, formatDateDot, kindOf, toJstIso, type EventEntry } from '../lib/events';
+// 研究会の一覧（1 行目に日付〈曜日〉・種別ラベル・名称、2 行目に会場）。
+// トップの「研究会の記録」、トップの「これからの研究会」、研究会一覧ページで共用。
+import { eventPath, formatDateDot, jstParts, kindOf, toJstIso, type EventEntry } from '../lib/events';
 import { withBase } from '../lib/url';
 
 interface Props {
@@ -18,11 +19,14 @@ const { events, label } = Astro.props;
       return (
         <li>
           <a class="event-list__item" href={withBase(eventPath(e))}>
-            <time class="event-list__date" datetime={toJstIso(e.data.start).slice(0, 10)}>{formatDateDot(e.data.start)}</time>
-            <span class={`kind ${kind.className}`}>{kind.label}</span>
-            <span class="event-list__title">
-              {e.data.title}
-              <span class="event-list__venue">（{e.data.venue}）</span>
+            <time class="event-list__date" datetime={toJstIso(e.data.start).slice(0, 10)}>
+              {formatDateDot(e.data.start)}
+              <span class="event-list__weekday">（{jstParts(e.data.start).weekday}）</span>
+            </time>
+            <span class="event-list__body">
+              <span class={`kind ${kind.className}`}>{kind.label}</span>
+              <span class="event-list__title">{e.data.title}</span>
+              <span class="event-list__venue">{e.data.venue}</span>
             </span>
           </a>
         </li>
@@ -32,49 +36,62 @@ const { events, label } = Astro.props;
 </ul>
 
 <style>
+  /* 行の上下に細い罫線。左の列に日付、右の列に種別ラベル・名称・会場 */
   .event-list {
     margin: 0;
     padding: 0;
     list-style: none;
     border-top: 1px solid var(--color-line);
   }
+  .event-list li {
+    border-bottom: 1px solid var(--color-line);
+  }
   .event-list__item {
     display: grid;
-    grid-template-columns: 7.5em auto 1fr;
+    grid-template-columns: 9.2em minmax(0, 1fr);
     align-items: baseline;
-    gap: 4px 16px;
-    padding: 16px 4px;
-    border-bottom: 1px solid var(--color-line);
+    gap: 2px 16px;
+    padding: 12px 4px;
     color: var(--color-text);
     text-decoration: none;
+  }
+  .event-list__item:hover {
+    background: var(--color-bg-tint);
   }
   .event-list__item:hover .event-list__title {
     color: var(--color-main-hover);
     text-decoration: underline;
   }
   .event-list__date {
+    font-size: 15px;
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
+    color: var(--color-text-sub);
+    white-space: nowrap;
+  }
+  .event-list__weekday {
+    font-size: 13px;
+    font-weight: 400;
     color: var(--color-text-note);
-    font-weight: 500;
+  }
+  .event-list__body .kind {
+    margin-right: 8px;
+    vertical-align: 1px;
   }
   .event-list__title {
+    color: var(--color-main);
     font-weight: 500;
   }
-  /* 狭い画面で種別ラベルがセルいっぱいに伸びないように */
-  .event-list__item .kind {
-    justify-self: start;
-  }
   .event-list__venue {
-    font-size: 14px;
+    display: block;
+    margin-top: 1px;
+    font-size: 13px;
     color: var(--color-text-note);
-    font-weight: 400;
   }
   @media (max-width: 640px) {
     .event-list__item {
-      grid-template-columns: auto 1fr;
-    }
-    .event-list__title {
-      grid-column: 1 / -1;
+      grid-template-columns: minmax(0, 1fr);
+      padding: 10px 2px;
     }
   }
 </style>

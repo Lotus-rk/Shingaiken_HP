@@ -106,7 +106,5 @@ export async function getEvents(now: Date = new Date()) {
   const byStartAsc = (a: EventEntry, b: EventEntry) => a.data.start.getTime() - b.data.start.getTime();
   const upcoming = all.filter((e) => endOf(e) >= now).sort(byStartAsc);
   const past = all.filter((e) => endOf(e) < now).sort((a, b) => byStartAsc(b, a));
-  /** 新しい順の全件 */
-  const latest = [...all].sort((a, b) => byStartAsc(b, a));
-  return { all, upcoming, past, latest, next: upcoming[0] };
+  return { all, upcoming, past };
 }

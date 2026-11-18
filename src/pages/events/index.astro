@@ -1,7 +1,8 @@
 ---
-// 研究会一覧：これからの研究会（なければ準備中の案内）と、過去の研究会（新しい順）
+// 研究会一覧：これからの研究会（トップと同じお知らせの枠。なければ準備中の案内）と、過去の研究会（新しい順）
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import EventList from '../../components/EventList.astro';
+import NextEvent from '../../components/NextEvent.astro';
 import PageHeader from '../../components/PageHeader.astro';
 import { getEvents } from '../../lib/events';
 import { site } from '../../data/site';
@@ -28,79 +29,33 @@ const jsonLd = {
     lead={`${site.shortName}が開く研究会のご案内です。各研究会のページでは、開催情報と開催後の報告をご覧いただけます。`}
   />
 
-  <section class="section" aria-labelledby="upcoming-title">
-    <div class="container">
-      <h2 class="section-title" id="upcoming-title">これからの研究会</h2>
-      {
-        upcoming.length > 0 ? (
-          <div class="upcoming">
-            <EventList events={upcoming} label="これからの研究会" />
-          </div>
-        ) : (
-          <div class="upcoming upcoming--empty">
-            <p>次回の研究会は準備中です。</p>
-            <p>
-              決まりしだい、このページと
-              <a href={site.sns.instagram} rel="noopener">
-                Instagram
-              </a>
-              ・
-              <a href={site.sns.x} rel="noopener">
-                X
-              </a>
-              でお知らせします。
-            </p>
-          </div>
-        )
-      }
-    </div>
-  </section>
+  <div class="container events-page">
+    <NextEvent
+      events={upcoming}
+      title="これからの研究会"
+      headingId="upcoming-title"
+      othersTitle="その後の予定"
+      pastLink={{ href: '/events/#past-title', label: '過去の研究会' }}
+    />
 
-  <section class="section section--tint" aria-labelledby="past-title">
-    <div class="container">
+    <section aria-labelledby="past-title">
       <h2 class="section-title" id="past-title">過去の研究会</h2>
-      {
-        past.length > 0 ? (
-          <div class="past">
-            <EventList events={past} label="過去の研究会" />
-          </div>
-        ) : (
-          <p>まだありません。</p>
-        )
-      }
-    </div>
-  </section>
+      {past.length > 0 ? <EventList events={past} label="過去の研究会（新しい順）" /> : <p>まだありません。</p>}
+    </section>
+  </div>
 </BaseLayout>
 
 <style>
-  .upcoming {
-    padding: 8px 24px;
-    background: var(--color-next-bg);
-    border-radius: var(--radius-button);
-  }
-  .upcoming--empty {
-    padding: 20px 24px;
-  }
-  .upcoming--empty p {
-    margin: 0;
-  }
-  .upcoming--empty p + p {
-    margin-top: 4px;
-    color: var(--color-text-sub);
-  }
-  .past {
-    background: var(--color-bg);
-    padding: 0 16px;
+  .events-page {
+    display: grid;
+    gap: 44px;
+    padding-top: 32px;
+    padding-bottom: var(--space-section);
   }
   @media (max-width: 640px) {
-    .upcoming {
-      padding: 4px 16px;
-    }
-    .upcoming--empty {
-      padding: 16px;
-    }
-    .past {
-      padding: 0 12px;
+    .events-page {
+      gap: 36px;
+      padding-top: 24px;
     }
   }
 </style>

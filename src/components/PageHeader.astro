@@ -1,13 +1,7 @@
 ---
-// 下層ページの見出し：パンくず（ホーム › ページ名）と h1。淡い水色の帯に置く。すべての下層ページでこれを使う。
-// 見出しの上に種別ラベルなどを置くときは <Fragment slot="before-title">…</Fragment> を渡す。
-import { withBase } from '../lib/url';
-
-export interface Crumb {
-  label: string;
-  /** サイト内パス（例 '/about/'）。最後の項目（今いるページ）は省略する */
-  href?: string;
-}
+// 下層ページの見出し：パンくず（ホーム › ページ名）と h1。パンくずは白地の細い行、h1 は淡い水色の帯に置く。
+// 研究会の個別ページ以外の下層ページは、すべてこれを使う。
+import Breadcrumbs, { type Crumb } from './Breadcrumbs.astro';
 
 export interface Props {
   title: string;
@@ -15,97 +9,37 @@ export interface Props {
   breadcrumbs?: Crumb[];
   /** 見出しの下に置く短い説明（任意） */
   lead?: string;
-  /** h1 の中で、名称の下に小さく添える副題（任意） */
-  subtitle?: string;
 }
 
-const { title, breadcrumbs = [], lead, subtitle } = Astro.props;
-const crumbs: Crumb[] = [{ label: 'ホーム', href: '/' }, ...breadcrumbs, { label: title }];
+const { title, breadcrumbs = [], lead } = Astro.props;
 ---
 
 <div class="page-header">
-  <div class="container">
-    <nav aria-label="パンくずリスト">
-      <ol class="page-header__crumbs">
-        {
-          crumbs.map((c, i) => (
-            <li>
-              {c.href && i < crumbs.length - 1 ? (
-                <a href={withBase(c.href)}>{c.label}</a>
-              ) : (
-                <span aria-current="page">{c.label}</span>
-              )}
-            </li>
-          ))
-        }
-      </ol>
-    </nav>
-    {Astro.slots.has('before-title') && <div class="page-header__before"><slot name="before-title" /></div>}
-    <h1 class="page-header__title">
-      {title}
-      {subtitle && <span class="page-header__subtitle">{subtitle}</span>}
-    </h1>
-    {lead && <p class="page-header__lead">{lead}</p>}
+  <Breadcrumbs items={[...breadcrumbs, { label: title }]} />
+  <div class="page-header__band">
+    <div class="container">
+      <h1 class="page-title">{title}</h1>
+      {lead && <p class="page-header__lead">{lead}</p>}
+    </div>
   </div>
 </div>
 
 <style>
-  .page-header {
+  .page-header__band {
     background: var(--color-bg-tint);
-    padding: 28px 0 36px;
+    border-top: 1px solid var(--color-line);
     border-bottom: 1px solid var(--color-line);
-  }
-  .page-header__crumbs {
-    display: flex;
-    flex-wrap: wrap;
-    margin: 0 0 12px;
-    padding: 0;
-    list-style: none;
-    font-size: 13px;
-    color: var(--color-text-note);
-  }
-  .page-header__crumbs li + li::before {
-    content: '›';
-    margin: 0 8px;
-    color: var(--color-text-note);
-  }
-  .page-header__crumbs a {
-    color: var(--color-text-sub);
-    text-decoration: none;
-  }
-  .page-header__crumbs a:hover {
-    color: var(--color-main-hover);
-    text-decoration: underline;
-  }
-  .page-header__before {
-    margin: 0 0 8px;
-  }
-  .page-header__title {
-    margin: 0;
-    max-width: 900px;
-    font-size: 30px;
-  }
-  .page-header__subtitle {
-    display: block;
-    margin-top: 8px;
-    font-size: 18px;
-    font-weight: 500;
-    color: var(--color-text-sub);
+    padding: 22px 0 24px;
   }
   .page-header__lead {
     margin: 10px 0 0;
     max-width: var(--width-text);
     color: var(--color-text-sub);
+    font-size: 15px;
   }
   @media (max-width: 640px) {
-    .page-header {
-      padding: 20px 0 28px;
-    }
-    .page-header__title {
-      font-size: 25px;
-    }
-    .page-header__subtitle {
-      font-size: 16px;
+    .page-header__band {
+      padding: 16px 0 18px;
     }
   }
 </style>

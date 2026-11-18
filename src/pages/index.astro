@@ -1,16 +1,17 @@
 ---
-// トップページ。並びは案D（docs/04_デザイン案.md「案Dの構成」）。
+// トップページ（学会・研究会の公式サイト型）。h1 はヘッダーの会の正式名称（SiteHeader.astro）。
+// メニューの下に会の説明の細い帯、その下を 2 列に分け、左に「次回の研究会」と「研究会の記録」、右に会の案内の欄を置く。
+// スマートフォンでは 1 列になり、右の欄は下に回る。
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Hero from '../components/home/Hero.astro';
-import NextEvent from '../components/home/NextEvent.astro';
-import News from '../components/home/News.astro';
-import About from '../components/home/About.astro';
-import Sns from '../components/home/Sns.astro';
+import Banner from '../components/home/Banner.astro';
+import NextEvent from '../components/NextEvent.astro';
+import Records from '../components/home/Records.astro';
+import Sidebar from '../components/Sidebar.astro';
 import { site } from '../data/site';
 import { absoluteUrl } from '../lib/url';
 import { getEvents } from '../lib/events';
 
-const { next, latest } = await getEvents();
+const { upcoming, past } = await getEvents();
 
 // 検索エンジン向けの会の情報（WebSite と Organization を同じ @graph に入れる）
 const home = absoluteUrl('/', Astro.site);
@@ -51,9 +52,35 @@ const jsonLd = {
 ---
 
 <BaseLayout description={site.description} jsonLd={jsonLd}>
-  <Hero />
-  <NextEvent event={next} />
-  <News events={latest.slice(0, 5)} />
-  <About />
-  <Sns />
+  <Banner />
+  <div class="container home">
+    <div class="home__main">
+      <NextEvent events={upcoming} headingId="next" pastLink={{ href: '/#records', label: '研究会の記録' }} />
+      <Records events={past} />
+    </div>
+    <Sidebar pastCount={past.length} />
+  </div>
 </BaseLayout>
+
+<style>
+  .home {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 40px;
+    padding-top: 32px;
+    padding-bottom: var(--space-section);
+  }
+  .home__main {
+    display: grid;
+    gap: 40px;
+    align-content: start;
+    min-width: 0;
+  }
+  @media (max-width: 900px) {
+    .home {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 36px;
+      padding-top: 24px;
+    }
+  }
+</style>

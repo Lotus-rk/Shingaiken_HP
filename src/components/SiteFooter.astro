@@ -1,74 +1,100 @@
 ---
+// 全ページ共通のフッター：会の名称・事務局・連絡先と、ページへのリンク（1 行に並べる）。
 import { site, footerNav } from '../data/site';
 import { withBase } from '../lib/url';
 const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer" id="contact">
-  <div class="container site-footer__inner">
-    <div>
-      <p class="site-footer__name">{site.fullName}</p>
-      <p>事務局：{site.office.label}</p>
-      <p>お問い合わせ：{site.emailDisplay}<span class="site-footer__note">（(a) を @ に替えて送信してください）</span></p>
-      <p class="site-footer__sns">
-        <a href={site.sns.instagram}>Instagram</a>
-        <a href={site.sns.x}>X</a>
-        {site.sns.peatix && <a href={site.sns.peatix}>Peatix</a>}
-      </p>
-    </div>
-    <nav aria-label="フッターメニュー">
-      <ul class="site-footer__nav">
-        {footerNav.map((item) => (
-          <li><a href={withBase(item.href)}>{item.label}</a></li>
-        ))}
-      </ul>
-    </nav>
+  <nav class="site-footer__navbar" aria-label="フッターメニュー">
+    <ul class="container site-footer__nav">
+      {footerNav.map((item) => (
+        <li><a href={withBase(item.href)}>{item.label}</a></li>
+      ))}
+    </ul>
+  </nav>
+  <div class="container site-footer__body">
+    <p class="site-footer__name">{site.fullName}</p>
+    <p>事務局：{site.office.label}</p>
+    <p>
+      お問い合わせ：{site.emailDisplay}
+      <span class="site-footer__note">（(a) を @ に替えて送信してください）</span>
+    </p>
+    <p>
+      <a href={site.sns.instagram} rel="noopener">Instagram</a>
+      <span aria-hidden="true">／</span>
+      <a href={site.sns.x} rel="noopener">X</a>
+      {site.sns.peatix && (
+        <>
+          <span aria-hidden="true">／</span>
+          <a href={site.sns.peatix} rel="noopener">Peatix</a>
+        </>
+      )}
+    </p>
+    <p class="site-footer__copy">© {year} {site.name}</p>
   </div>
-  <p class="site-footer__copy container">© {year} {site.name}</p>
 </footer>
 
 <style>
   .site-footer {
+    margin-top: 8px;
     background: var(--color-bg-footer);
-    padding: 40px 0 24px;
+    border-top: 3px solid var(--color-main);
     font-size: 14px;
     color: var(--color-text-sub);
   }
   .site-footer p {
-    margin: 0 0 4px;
+    margin: 0 0 2px;
   }
-  .site-footer__inner {
+  .site-footer__navbar {
+    border-bottom: 1px solid var(--color-line);
+    background: #fff;
+  }
+  .site-footer__nav {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 24px 40px;
+    gap: 0;
+    margin: 0 auto;
+    list-style: none;
+  }
+  .site-footer__nav li + li {
+    border-left: 1px solid var(--color-line);
+  }
+  .site-footer__nav a {
+    display: block;
+    padding: 10px 16px;
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  .site-footer__nav li:first-child a {
+    padding-left: 0;
+  }
+  .site-footer__nav a:hover {
+    color: var(--color-main-hover);
+    text-decoration: underline;
+  }
+  .site-footer__body {
+    padding-top: 20px;
+    padding-bottom: 20px;
   }
   .site-footer__name {
-    font-family: var(--font-heading);
     font-weight: 700;
-    font-size: 17px;
+    font-size: 16px;
     color: var(--color-text);
+    margin-bottom: 4px !important;
   }
   .site-footer__note {
     font-size: 12px;
     color: var(--color-text-note);
   }
-  .site-footer__sns {
-    display: flex;
-    gap: 16px;
-    margin-top: 8px !important;
-  }
-  .site-footer__nav {
-    display: grid;
-    grid-template-columns: repeat(2, auto);
-    gap: 4px 32px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
   .site-footer__copy {
-    margin-top: 28px !important;
+    margin-top: 12px !important;
     font-size: 12px;
     color: var(--color-text-note);
+  }
+  @media (max-width: 640px) {
+    .site-footer__nav a {
+      padding: 8px 12px;
+    }
   }
 </style>
