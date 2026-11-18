@@ -1,0 +1,30 @@
+---
+// 役員
+// TODO（会のMTGで決める）：掲載範囲（氏名・所属・役職のどこまで載せるか）が未決定。
+// 役職の種類や人数も、会則の原文で確かめてから載せる（確かめるまでは何も載せない）。
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { withBase } from '../lib/url';
+
+const title = '役員';
+const description = '新しい外国語実践研究会（新外研）の役員についてのページです。掲載内容は現在確認中です。';
+---
+
+<BaseLayout title={title} description={description}>
+  <PageHeader title={title} />
+
+  <section class="section">
+    <div class="container prose">
+      <p class="officers-note" role="note">役員の掲載内容は確認中です。準備ができしだい掲載します。</p>
+      <p>会の目的や活動については、<a href={withBase('/about/')}>新外研について</a>をご覧ください。</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .officers-note {
+    padding: 12px 16px;
+    background: var(--color-next-bg);
+    border-left: 4px solid var(--color-next-label);
+  }
+</style>

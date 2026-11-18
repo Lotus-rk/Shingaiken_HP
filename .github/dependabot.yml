@@ -1,0 +1,29 @@
+# 依存パッケージ（npm）と GitHub Actions の更新を、毎週月曜に PR で提案してもらう。
+# 小さな更新（minor・patch）は 1 つの PR にまとめる。大きな更新（major。例：Astro 7 → 8）は
+# 1 件ずつ別の PR になり、作りが変わることがあるので、詳しい人が中身を確かめてから取り込む。
+# PR を開くと check.yml の点検が自動で走る。緑（成功）なら、minor・patch の PR はそのまま取り込んでよい。
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Asia/Tokyo
+    open-pull-requests-limit: 5
+    groups:
+      npm-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Asia/Tokyo
+    open-pull-requests-limit: 5
+    groups:
+      actions-minor-patch:
+        update-types: [minor, patch]

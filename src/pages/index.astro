@@ -1,0 +1,59 @@
+---
+// トップページ。並びは案D（docs/04_デザイン案.md「案Dの構成」）。
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/home/Hero.astro';
+import NextEvent from '../components/home/NextEvent.astro';
+import News from '../components/home/News.astro';
+import About from '../components/home/About.astro';
+import Sns from '../components/home/Sns.astro';
+import { site } from '../data/site';
+import { absoluteUrl } from '../lib/url';
+import { getEvents } from '../lib/events';
+
+const { next, latest } = await getEvents();
+
+// 検索エンジン向けの会の情報（WebSite と Organization を同じ @graph に入れる）
+const home = absoluteUrl('/', Astro.site);
+const sameAs = [site.sns.instagram, site.sns.x, ...(site.sns.peatix ? [site.sns.peatix] : [])];
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': `${home}#website`,
+      name: site.name,
+      alternateName: [site.shortName],
+      url: home,
+      inLanguage: 'ja',
+      publisher: { '@id': `${home}#organization` },
+    },
+    {
+      '@type': 'Organization',
+      '@id': `${home}#organization`,
+      name: site.name,
+      alternateName: [site.shortName],
+      url: home,
+      // ロゴ画像ができたら public/ に置き、ここに logo: absoluteUrl(site.logo, Astro.site) を加える
+      foundingDate: site.foundingDate,
+      email: site.email,
+      address: {
+        '@type': 'PostalAddress',
+        addressCountry: 'JP',
+        addressRegion: site.office.region,
+        addressLocality: site.office.locality,
+        streetAddress: `${site.office.street} ${site.office.note}`,
+        postalCode: site.office.postalCode,
+      },
+      sameAs,
+    },
+  ],
+};
+---
+
+<BaseLayout description={site.description} jsonLd={jsonLd}>
+  <Hero />
+  <NextEvent event={next} />
+  <News events={latest.slice(0, 5)} />
+  <About />
+  <Sns />
+</BaseLayout>

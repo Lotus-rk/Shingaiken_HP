@@ -1,0 +1,115 @@
+---
+// 研究会ページの「開催情報」表（日時・形式・会場・参加費・申込・登壇者）。項目があるものだけを出す。
+import { formatDateTimeRange, formatFee, formatLabel, type EventEntry } from '../../lib/events';
+
+interface Props {
+  entry: EventEntry;
+  /** これからの研究会なら true（申込欄の表示が変わる） */
+  upcoming: boolean;
+}
+const { entry, upcoming } = Astro.props;
+const d = entry.data;
+const fee = formatFee(d.fee);
+---
+
+<dl class="facts">
+  <div class="facts__row">
+    <dt>日時</dt>
+    <dd>{formatDateTimeRange(d.start, d.end)}</dd>
+  </div>
+  <div class="facts__row">
+    <dt>形式</dt>
+    <dd>{formatLabel(entry)}</dd>
+  </div>
+  <div class="facts__row">
+    <dt>会場</dt>
+    <dd>
+      {d.venue}
+      {d.venueAddress && <span class="facts__note">{d.venueAddress}</span>}
+    </dd>
+  </div>
+  {
+    fee && (
+      <div class="facts__row">
+        <dt>参加費</dt>
+        <dd>{fee}</dd>
+      </div>
+    )
+  }
+  {
+    d.apply && (
+      <div class="facts__row">
+        <dt>申込</dt>
+        <dd>
+          {upcoming ? (
+            <a href={d.apply} rel="noopener">
+              Peatix の申込ページ
+            </a>
+          ) : (
+            '受付は終了しました'
+          )}
+        </dd>
+      </div>
+    )
+  }
+  {
+    d.speakers.length > 0 && (
+      <div class="facts__row">
+        <dt>登壇者</dt>
+        <dd>
+          <ul class="facts__speakers">
+            {d.speakers.map((s) => (
+              <li>
+                {s.role && <span class="facts__role">{s.role}</span>}
+                {s.name}
+                {s.affiliation && `（${s.affiliation}）`}
+              </li>
+            ))}
+          </ul>
+        </dd>
+      </div>
+    )
+  }
+</dl>
+
+<style>
+  .facts {
+    margin: 0;
+    border-top: 1px solid var(--color-line);
+  }
+  .facts__row {
+    display: grid;
+    grid-template-columns: 7em 1fr;
+    gap: 4px 16px;
+    padding: 14px 4px;
+    border-bottom: 1px solid var(--color-line);
+  }
+  dt {
+    font-weight: 700;
+    color: var(--color-text-sub);
+  }
+  dd {
+    margin: 0;
+  }
+  .facts__note {
+    display: block;
+    font-size: 14px;
+    color: var(--color-text-note);
+  }
+  .facts__speakers {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .facts__role {
+    margin-right: 0.75em;
+    font-size: 14px;
+    color: var(--color-text-note);
+  }
+  @media (max-width: 640px) {
+    .facts__row {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+  }
+</style>

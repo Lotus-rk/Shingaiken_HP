@@ -1,0 +1,77 @@
+---
+// SNS への案内。Peatix はグループ URL が分かったら site.ts に入れると表示される。
+import { site } from '../../data/site';
+
+const links = [
+  { href: site.sns.instagram, label: 'Instagram' },
+  { href: site.sns.x, label: 'X' },
+  ...(site.sns.peatix ? [{ href: site.sns.peatix, label: 'Peatix' }] : []),
+];
+---
+
+<section class="section sns" aria-labelledby="sns-title">
+  <div class="container sns__inner">
+    <div class="sns__text">
+      <h2 class="sns__title" id="sns-title">SNSでも発信しています</h2>
+      <p>研究会のお知らせは、InstagramとXでもお届けしています。</p>
+    </div>
+    <ul class="sns__links">
+      {
+        links.map((l) => (
+          <li>
+            <a class="sns__button" href={l.href}>
+              {l.label}
+              <span class="visually-hidden">（外部サイト）</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .sns__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .sns__text {
+    flex: 1 1 420px;
+    min-width: 0;
+  }
+  .sns__title {
+    margin: 0 0 4px;
+    font-size: 22px;
+  }
+  .sns__text p {
+    margin: 0;
+    color: var(--color-text-sub);
+  }
+  .sns__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .sns__button {
+    display: inline-block;
+    min-width: 8em;
+    padding: 11px 22px;
+    background: #fff;
+    border: 1px solid #c9d7e3;
+    border-radius: var(--radius-button);
+    color: var(--color-text);
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+  }
+  .sns__button:hover {
+    border-color: var(--color-main);
+    color: var(--color-main-hover);
+  }
+</style>

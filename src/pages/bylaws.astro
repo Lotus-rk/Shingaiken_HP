@@ -1,0 +1,43 @@
+---
+// 会則
+// TODO：正式な条文がまだ手元にない。会の原本（または現行サイトの会則）の本文を、そのまま貼り付ける。
+// 第1条は CLAUDE.md に要旨があるが、要旨を条文として載せてはいけないので、原文を貼ること。
+// 条文が入ったら、下の .bylaws-note を削除し、description も「会則の全文」に合わせて直す。
+//
+// 原文を貼るときの形（例）。条の番号・見出し・本文はすべて原文どおりにする：
+//   const articles = [
+//     { number: '第1条', heading: '（原文の見出し）', text: ['（原文の本文。段落ごとに 1 要素）'] },
+//     ...
+//   ];
+//   {articles.map((a) => (
+//     <section class="bylaws-article">
+//       <h2>{a.number}（{a.heading}）</h2>
+//       {a.text.map((t) => <p>{t}</p>)}
+//     </section>
+//   ))}
+// 附則（施行日）も原文の文言のまま載せる。
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+
+const title = '会則';
+const description = '新しい外国語実践研究会（新外研）の会則についてのページです。会則の本文は準備ができしだい掲載します。';
+---
+
+<BaseLayout title={title} description={description}>
+  <PageHeader title={title} />
+
+  <section class="section">
+    <div class="container prose">
+      <p class="bylaws-note" role="note">会則は2026年5月4日に施行されました。本文は準備ができしだい掲載します。</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .bylaws-note {
+    padding: 12px 16px;
+    background: var(--color-next-bg);
+    border-left: 4px solid var(--color-next-label);
+    color: var(--color-text);
+  }
+</style>

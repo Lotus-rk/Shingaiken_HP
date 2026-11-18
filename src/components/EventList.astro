@@ -1,0 +1,80 @@
+---
+// 研究会のお知らせリスト（日付・色付き種別ラベル・タイトル・会場）。トップと研究会一覧で共用。
+import { eventPath, formatDateDot, kindOf, toJstIso, type EventEntry } from '../lib/events';
+import { withBase } from '../lib/url';
+
+interface Props {
+  events: EventEntry[];
+  /** 見出しレベルを持たないリストなので、読み上げ用のラベル */
+  label?: string;
+}
+const { events, label } = Astro.props;
+---
+
+<ul class="event-list" aria-label={label}>
+  {
+    events.map((e) => {
+      const kind = kindOf(e);
+      return (
+        <li>
+          <a class="event-list__item" href={withBase(eventPath(e))}>
+            <time class="event-list__date" datetime={toJstIso(e.data.start).slice(0, 10)}>{formatDateDot(e.data.start)}</time>
+            <span class={`kind ${kind.className}`}>{kind.label}</span>
+            <span class="event-list__title">
+              {e.data.title}
+              <span class="event-list__venue">（{e.data.venue}）</span>
+            </span>
+          </a>
+        </li>
+      );
+    })
+  }
+</ul>
+
+<style>
+  .event-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--color-line);
+  }
+  .event-list__item {
+    display: grid;
+    grid-template-columns: 7.5em auto 1fr;
+    align-items: baseline;
+    gap: 4px 16px;
+    padding: 16px 4px;
+    border-bottom: 1px solid var(--color-line);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  .event-list__item:hover .event-list__title {
+    color: var(--color-main-hover);
+    text-decoration: underline;
+  }
+  .event-list__date {
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text-note);
+    font-weight: 500;
+  }
+  .event-list__title {
+    font-weight: 500;
+  }
+  /* 狭い画面で種別ラベルがセルいっぱいに伸びないように */
+  .event-list__item .kind {
+    justify-self: start;
+  }
+  .event-list__venue {
+    font-size: 14px;
+    color: var(--color-text-note);
+    font-weight: 400;
+  }
+  @media (max-width: 640px) {
+    .event-list__item {
+      grid-template-columns: auto 1fr;
+    }
+    .event-list__title {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

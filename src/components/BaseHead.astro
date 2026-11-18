@@ -1,0 +1,47 @@
+---
+// 全ページ共通の <head>：title・description・canonical・OGP・JSON-LD・検索エンジン向け設定
+import '../styles/global.css';
+import { site, productionUrl } from '../data/site';
+import { absoluteUrl } from '../lib/url';
+
+export interface Props {
+  /** ページ名。トップでは省略し site.homeTitle を使う */
+  title?: string;
+  description?: string;
+  /** OGP 画像（public/ からのパス、または絶対 URL） */
+  ogImage?: string;
+  ogType?: 'website' | 'article';
+  /** JSON-LD（オブジェクトをそのまま渡す） */
+  jsonLd?: Record<string, unknown>;
+  /** true にすると検索エンジンに載せず、canonical も出さない（404 ページ用） */
+  noindex?: boolean;
+}
+
+const { title, description = site.description, ogImage = site.ogImage, ogType = 'website', jsonLd, noindex = false } = Astro.props;
+const fullTitle = title ? `${title}｜${site.fullName}` : site.homeTitle;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImageUrl = /^https?:/.test(ogImage) ? ogImage : absoluteUrl(ogImage, Astro.site);
+// 本番以外（試験公開など）は検索エンジンに載せない
+const isProduction = absoluteUrl('/', Astro.site) === productionUrl;
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+{!noindex && <link rel="canonical" href={canonical} />}
+{(!isProduction || noindex) && <meta name="robots" content="noindex, nofollow" />}
+<link rel="icon" href={absoluteUrl('/favicon.svg', Astro.site)} type="image/svg+xml" />
+<link rel="sitemap" href={absoluteUrl('/sitemap-index.xml', Astro.site)} />
+<meta name="theme-color" content="#1a6db5" />
+
+<meta property="og:site_name" content={site.name} />
+<meta property="og:locale" content="ja_JP" />
+<meta property="og:type" content={ogType} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={ogImageUrl} />
+<meta name="twitter:card" content="summary_large_image" />
+
+{jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
