@@ -1,5 +1,5 @@
 ---
-// 研究会一覧：これからの研究会（トップと同じお知らせの枠。なければ準備中の案内）と、過去の研究会（新しい順）
+// 研究会一覧：これからの研究会（トップと同じ淡い黄色の枠。なければ準備中の案内）と、過去の研究会（新しい順。淡い水色の節）
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import EventList from '../../components/EventList.astro';
 import NextEvent from '../../components/NextEvent.astro';
@@ -29,33 +29,50 @@ const jsonLd = {
     lead={`${site.shortName}が開く研究会のご案内です。各研究会のページでは、開催情報と開催後の報告をご覧いただけます。`}
   />
 
-  <div class="container events-page">
-    <NextEvent
-      events={upcoming}
-      title="これからの研究会"
-      headingId="upcoming-title"
-      othersTitle="その後の予定"
-      pastLink={{ href: '/events/#past-title', label: '過去の研究会' }}
-    />
-
-    <section aria-labelledby="past-title">
-      <h2 class="section-title" id="past-title">過去の研究会</h2>
-      {past.length > 0 ? <EventList events={past} label="過去の研究会（新しい順）" /> : <p>まだありません。</p>}
-    </section>
+  <div class="section">
+    <div class="container">
+      <NextEvent
+        events={upcoming}
+        title="これからの研究会"
+        headingId="upcoming-title"
+        othersTitle="その後の予定"
+        pastLink={{ href: '#past-title', label: '過去の研究会を見る' }}
+      />
+    </div>
   </div>
+
+  <section class="section section--tint" aria-labelledby="past-title">
+    <div class="container">
+      <h2 class="section-title" id="past-title">過去の研究会</h2>
+      {
+        past.length > 0 ? (
+          <div class="past">
+            <EventList events={past} label="過去の研究会（新しい順）" />
+          </div>
+        ) : (
+          <p>まだありません。</p>
+        )
+      }
+    </div>
+  </section>
 </BaseLayout>
 
 <style>
-  .events-page {
-    display: grid;
-    gap: 44px;
-    padding-top: 32px;
-    padding-bottom: var(--space-section);
+  /* 淡い水色の節の中で、一覧を白い地に置く */
+  .past {
+    padding: 0 20px;
+    background: var(--color-bg);
+    border-radius: var(--radius-button);
+  }
+  .past :global(.event-list) {
+    border-top: 0;
+  }
+  .past :global(.event-list li:last-child) {
+    border-bottom: 0;
   }
   @media (max-width: 640px) {
-    .events-page {
-      gap: 36px;
-      padding-top: 24px;
+    .past {
+      padding: 0 14px;
     }
   }
 </style>

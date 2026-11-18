@@ -1,6 +1,6 @@
 ---
 // 研究会の一覧（1 行目に日付〈曜日〉・種別ラベル・名称、2 行目に会場）。
-// トップの「研究会の記録」、トップの「これからの研究会」、研究会一覧ページで共用。
+// トップの「研究会の記録」、次回の研究会の枠の「その後の予定」、研究会一覧ページで共用。
 import { eventPath, formatDateDot, jstParts, kindOf, toJstIso, type EventEntry } from '../lib/events';
 import { withBase } from '../lib/url';
 
@@ -8,11 +8,13 @@ interface Props {
   events: EventEntry[];
   /** 見出しレベルを持たないリストなので、読み上げ用のラベル */
   label?: string;
+  /** 直前の見出しをラベルにするときは、その見出しの id（label と同じ文言を二度読ませないため） */
+  labelledby?: string;
 }
-const { events, label } = Astro.props;
+const { events, label, labelledby } = Astro.props;
 ---
 
-<ul class="event-list" aria-label={label}>
+<ul class="event-list" aria-label={labelledby ? undefined : label} aria-labelledby={labelledby}>
   {
     events.map((e) => {
       const kind = kindOf(e);
@@ -36,7 +38,7 @@ const { events, label } = Astro.props;
 </ul>
 
 <style>
-  /* 行の上下に細い罫線。左の列に日付、右の列に種別ラベル・名称・会場 */
+  /* 行の間に細い罫線。左の列に日付、右の列に種別ラベル・名称、その下に会場 */
   .event-list {
     margin: 0;
     padding: 0;
@@ -48,50 +50,46 @@ const { events, label } = Astro.props;
   }
   .event-list__item {
     display: grid;
-    grid-template-columns: 9.2em minmax(0, 1fr);
+    grid-template-columns: 9.6em minmax(0, 1fr);
     align-items: baseline;
     gap: 2px 16px;
-    padding: 12px 4px;
+    padding: 16px 4px;
     color: var(--color-text);
     text-decoration: none;
-  }
-  .event-list__item:hover {
-    background: var(--color-bg-tint);
   }
   .event-list__item:hover .event-list__title {
     color: var(--color-main-hover);
     text-decoration: underline;
   }
   .event-list__date {
-    font-size: 15px;
-    font-weight: 700;
+    font-weight: 500;
     font-variant-numeric: tabular-nums;
-    color: var(--color-text-sub);
+    color: var(--color-text-note);
     white-space: nowrap;
   }
   .event-list__weekday {
-    font-size: 13px;
-    font-weight: 400;
-    color: var(--color-text-note);
+    font-size: 14px;
   }
   .event-list__body .kind {
-    margin-right: 8px;
+    margin-right: 10px;
     vertical-align: 1px;
   }
   .event-list__title {
-    color: var(--color-main);
     font-weight: 500;
+    /* 小さい「っ」などで行を始めない。語の切れ目で改行する（対応ブラウザのみ） */
+    line-break: strict;
+    word-break: auto-phrase;
   }
   .event-list__venue {
     display: block;
-    margin-top: 1px;
-    font-size: 13px;
+    margin-top: 2px;
+    font-size: 14px;
     color: var(--color-text-note);
   }
   @media (max-width: 640px) {
     .event-list__item {
       grid-template-columns: minmax(0, 1fr);
-      padding: 10px 2px;
+      padding: 14px 2px;
     }
   }
 </style>

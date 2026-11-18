@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.5",
+    "@fontsource/zen-maru-gothic": "^5.3.1",
     "astro": "^7.4.12"
   },
   "devDependencies": {

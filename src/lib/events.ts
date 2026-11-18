@@ -45,18 +45,26 @@ export function formatTime(d: Date): string {
   return `${pad(p.hour)}:${pad(p.minute)}`;
 }
 
-/** 2026年11月7日（土）10:00–12:00。時刻が 0:00 のものは日付のみとみなす */
-export function formatDateTimeRange(start: Date, end?: Date): string {
+/**
+ * 日時の表記を、途中で改行させたくないまとまりごとに分ける。parts.join(' ') が formatDateTimeRange と同じ文字列になる。
+ * 例：['2026年11月7日（土）', '10:00–12:00']。画面ではまとまりごとに改行を禁じ、「10:00–」のあとで切れないようにする
+ */
+export function dateTimeRangeParts(start: Date, end?: Date): string[] {
   const s = jstParts(start);
   const hasTime = s.hour !== 0 || s.minute !== 0;
-  let out = formatDateJa(start);
-  if (hasTime) out += ` ${formatTime(start)}`;
-  if (end) {
-    const e = jstParts(end);
-    const sameDay = e.year === s.year && e.month === s.month && e.day === s.day;
-    out += sameDay ? `–${formatTime(end)}` : `〜${formatDateJa(end)} ${formatTime(end)}`;
-  }
-  return out;
+  const date = formatDateJa(start);
+  if (!end) return hasTime ? [date, formatTime(start)] : [date];
+  const e = jstParts(end);
+  const sameDay = e.year === s.year && e.month === s.month && e.day === s.day;
+  if (sameDay) return hasTime ? [date, `${formatTime(start)}–${formatTime(end)}`] : [`${date}–${formatTime(end)}`];
+  return hasTime
+    ? [date, `${formatTime(start)}〜${formatDateJa(end)}`, formatTime(end)]
+    : [`${date}〜${formatDateJa(end)}`, formatTime(end)];
+}
+
+/** 2026年11月7日（土）10:00–12:00。時刻が 0:00 のものは日付のみとみなす */
+export function formatDateTimeRange(start: Date, end?: Date): string {
+  return dateTimeRangeParts(start, end).join(' ');
 }
 
 export function formatFee(fee: EventEntry['data']['fee']): string | undefined {

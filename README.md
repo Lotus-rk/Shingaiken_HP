@@ -100,7 +100,7 @@ npm run build   # 本番と同じ組み立て（dist/ にできる）
 npm run preview # 組み立てたものの確認
 ```
 
-技術の要点：Astro（静的出力）、素の CSS（`src/styles/global.css` に色や文字の大きさの変数。Web フォントは使わず、各端末の標準ゴシックで表示）、研究会データは Content Collections（決まりは `src/content.config.ts`）。サイト内のリンクと画像の URL は必ず `src/lib/url.ts` の `withBase()` を通してください（試験公開でサブパスに置いても壊れないようにするため。点検で、通していないリンクは切れたリンクとして見つかります）。
+技術の要点：Astro（静的出力）、素の CSS（`src/styles/global.css` に色や文字の大きさの変数。Web フォントは見出しの Zen Maru Gothic の太字 1 種だけで、本文は各端末の標準ゴシックで表示）、研究会データは Content Collections（決まりは `src/content.config.ts`）。サイト内のリンクと画像の URL は必ず `src/lib/url.ts` の `withBase()` を通してください（試験公開でサブパスに置いても壊れないようにするため。点検で、通していないリンクは切れたリンクとして見つかります）。
 
 ---
 
@@ -122,7 +122,8 @@ npm run preview # 組み立てたものの確認
 
 まず、仮置きの文言と未決定の内容を片づけます（今は、画面上では仮置きと分からない形で表示されています）。
 
-- [ ] トップの会の説明の文（`src/components/home/Banner.astro`）を代表が承認した。
+- [ ] トップのキャッチコピー（`src/components/home/Hero.astro`）を代表が承認した。
+- [ ] 「新外研が大切にしていること」3 項目と、トップの「新外研について」の文（`src/components/home/About.astro`）を代表が承認した。
 - [ ] 「新外研について」のページの文言（`src/pages/about.astro`）を代表が承認した。
 - [ ] 会則の原文を `src/pages/bylaws.astro` に貼り、「準備中」のお知らせを外した（または、準備中のまま公開することを会で決めた）。
 - [ ] 役員ページの掲載範囲を会で決め、`src/pages/officers.astro` に反映した（または、準備中のまま公開することを会で決めた）。

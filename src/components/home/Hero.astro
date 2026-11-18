@@ -1,0 +1,123 @@
+---
+// トップのヒーロー（淡い水色の背景）。大きなキャッチコピーの下に h1（正式名称）、そのすぐ後に会の説明の文。
+// 見出しの名前付きの区画（ランドマーク）にはしない（h1 があれば十分）。
+// 検索のため、h1 は正式名称だけにし、h1 の直後の文で正式名称・略称・目的・拠点を述べる（CLAUDE.md §5）。
+import { site } from '../../data/site';
+import { withBase } from '../../lib/url';
+// 写真を入れるとき：掲載許諾済みの写真を src/assets/ に置き、下の 2 行のコメントを外して使う。
+// import { Image } from 'astro:assets';
+// import heroPhoto from '../../assets/hero.jpg';
+---
+
+<div class="hero section--tint">
+  <div class="container hero__inner">
+    <div class="hero__text">
+      {/* 仮：キャッチコピーは代表の確認待ち（docs/04_デザイン案.md「仮のまま置いている部分」） */}
+      <p class="hero__catch">
+        <span>子どものことばが育つ</span>
+        <span>外国語の授業を、</span>
+        <span>先生たちと考える。</span>
+      </p>
+      <h1 class="hero__name" id="hero-title">{site.name}</h1>
+      <p class="hero__lead">
+        {site.name}（略称：{site.shortName}）は、小学校外国語教育を中心に実践研究を行う研究会です。授業づくりを通して子どもの言語能力を育てる方法を探り、教室での実践と研究をつなぎながら、その成果を広く共有します。東京都世田谷区に事務局を置き、公開授業研究会やオンラインの授業検討会・セミナーを開いています。
+      </p>
+      <p class="hero__actions">
+        <a class="button button--primary" href={withBase('#next')}>次回の研究会</a>
+        <a class="button button--secondary" href={withBase('/about/')}>新外研について</a>
+      </p>
+    </div>
+    {
+      /*
+        写真の枠（今は置かない）。児童の顔が写らないもの、または学校の掲載許諾を得たものだけを使う。
+        入れるときは次の要素を .hero__text の後ろに置く。:has() で自動的に 2 列になる。
+        <figure class="hero__photo">
+          <Image src={heroPhoto} alt="（写真の内容を具体的に）" widths={[480, 720, 960]} sizes="(min-width: 960px) 480px, 100vw" loading="eager" />
+        </figure>
+      */
+    }
+  </div>
+</div>
+
+<style>
+  .hero {
+    padding: 72px 0 80px;
+  }
+  .hero__inner {
+    display: grid;
+    gap: 40px;
+  }
+  .hero__inner:has(.hero__photo) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+    align-items: center;
+  }
+  .hero__text {
+    max-width: 44em;
+  }
+  .hero__name {
+    margin: 0 0 16px;
+    padding-left: 12px;
+    border-left: 4px solid var(--color-main);
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--color-text-sub);
+  }
+  .hero__catch {
+    margin: 0 0 28px;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: clamp(30px, 5.2vw, 50px);
+    line-height: 1.5;
+    letter-spacing: 0.04em;
+    color: var(--color-text);
+  }
+  .hero__catch span {
+    display: block;
+  }
+  .hero__lead {
+    margin: 0 0 32px;
+    max-width: 40em;
+    font-size: 17px;
+    line-height: 1.95;
+    color: var(--color-text-sub);
+  }
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0;
+  }
+  .hero__photo {
+    margin: 0;
+  }
+  .hero__photo :global(img) {
+    display: block;
+    width: 100%;
+    border-radius: var(--radius-box);
+  }
+  @media (max-width: 860px) {
+    .hero__inner:has(.hero__photo) {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 640px) {
+    .hero {
+      padding: 44px 0 52px;
+    }
+    .hero__name {
+      font-size: 15px;
+    }
+    .hero__catch {
+      font-size: 27px;
+      letter-spacing: 0.02em;
+    }
+    .hero__lead {
+      font-size: 16px;
+    }
+    .hero__actions .button {
+      flex: 1 1 auto;
+      text-align: center;
+    }
+  }
+</style>

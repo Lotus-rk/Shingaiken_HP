@@ -1,13 +1,8 @@
 ---
-// 全ページ共通のヘッダー：会のしるし（仮）と正式名称、右上の小さなリンク、その下に基調色のメニューの帯。
-// トップページでは会の正式名称そのものを <h1> にする（SEO：トップの h1 は正式名称。CLAUDE.md §5）。
-// 下層ページでは各ページの見出しが h1 になるので、ここは <p> にする。
 import { site, mainNav } from '../data/site';
 import { withBase } from '../lib/url';
 
 const current = Astro.url.pathname;
-const isHome = current === withBase('/');
-const NameTag = isHome ? 'h1' : 'p';
 // 今いるページなら 'page'、その下の階層（例：研究会の個別ページにいるときの「研究会」）なら 'true'
 const currentState = (href: string) => {
   const target = withBase(href);
@@ -19,194 +14,95 @@ const currentState = (href: string) => {
 
 <header class="site-header">
   <div class="container site-header__inner">
-    <a class="brand" href={withBase('/')}>
-      {/* 仮のしるし：正式なロゴが決まるまで「新外研」の文字を四角で囲んだものを置く（CLAUDE.md §4 未決定） */}
-      <span class="brand__mark" aria-hidden="true">新外研</span>
-      <div class="brand__text">
-        <NameTag class="brand__name">{site.name}</NameTag>
-        <span class="brand__sub">{site.shortName}｜{site.tagline}</span>
-      </div>
+    <a class="site-header__brand" href={withBase('/')}>
+      <span class="site-header__name">{site.name}</span>
+      <span class="site-header__sub">{site.shortName}｜{site.tagline}</span>
     </a>
-    <ul class="site-header__util" aria-label="お問い合わせとSNS">
-      <li><a href="#contact">お問い合わせ</a></li>{/* フッターの連絡先へ */}
-      <li><a href={site.sns.instagram} rel="noopener">Instagram</a></li>
-      <li><a href={site.sns.x} rel="noopener">X</a></li>
-    </ul>
+    <nav aria-label="メインメニュー">
+      <ul class="site-header__nav">
+        {
+          mainNav.map((item) => (
+            <li class={item.href === '/' ? 'site-header__home' : undefined}>
+              <a href={withBase(item.href)} aria-current={currentState(item.href)}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
   </div>
-  <nav class="gnav" aria-label="メインメニュー">
-    <ul class="container gnav__list">
-      {
-        mainNav.map((item) => (
-          <li class={item.href === '/' ? 'gnav__home' : undefined}>
-            <a href={withBase(item.href)} aria-current={currentState(item.href)}>
-              {item.label}
-            </a>
-          </li>
-        ))
-      }
-    </ul>
-  </nav>
 </header>
 
 <style>
   .site-header {
     background: #fff;
+    border-top: 5px solid var(--color-main);
+    border-bottom: 1px solid var(--color-line);
   }
   .site-header__inner {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 8px 24px;
-    padding-top: 18px;
-    padding-bottom: 18px;
+    padding-top: 14px;
+    padding-bottom: 14px;
   }
-  .brand {
+  .site-header__brand {
     display: flex;
-    align-items: center;
-    gap: 14px;
+    flex-direction: column;
+    line-height: 1.35;
     color: var(--color-text);
     text-decoration: none;
   }
-  /* 仮のしるし */
-  .brand__mark {
-    flex: 0 0 auto;
-    display: grid;
-    place-items: center;
-    width: 58px;
-    height: 58px;
-    background: var(--color-main);
-    color: #fff;
-    font-size: 16px;
+  .site-header__name {
+    font-family: var(--font-heading);
     font-weight: 700;
+    font-size: 21px;
     letter-spacing: 0.04em;
-    line-height: 1;
   }
-  .brand__text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.4;
-  }
-  .brand__name {
-    margin: 0;
-    line-height: 1.4;
-    font-size: 24px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-  }
-  .brand__sub {
-    margin-top: 2px;
+  .site-header__sub {
     font-size: 13px;
-    letter-spacing: 0.04em;
     color: var(--color-text-note);
   }
-  .site-header__util {
+  .site-header__nav {
     display: flex;
-    gap: 0;
+    flex-wrap: wrap;
+    gap: 2px 4px;
     margin: 0;
     padding: 0;
     list-style: none;
-    font-size: 13px;
-  }
-  .site-header__util li + li {
-    border-left: 1px solid var(--color-line);
-  }
-  .site-header__util a {
-    display: block;
-    padding: 2px 12px;
-    color: var(--color-text-sub);
-    text-decoration: none;
-  }
-  .site-header__util a:hover {
-    color: var(--color-main-hover);
-    text-decoration: underline;
-  }
-
-  /* メニューの帯（基調色の塗り）。項目は同じ幅で並べ、間に細い区切り線 */
-  .gnav {
-    background: var(--color-main);
-    border-bottom: 3px solid var(--color-main-dark);
-  }
-  .gnav__list {
-    display: flex;
-    margin: 0 auto;
-    list-style: none;
-  }
-  .gnav__list li {
-    flex: 1 1 0;
-    border-left: 1px solid rgb(255 255 255 / 0.3);
-  }
-  .gnav__list li:last-child {
-    border-right: 1px solid rgb(255 255 255 / 0.3);
-  }
-  .gnav__list a {
-    display: block;
-    padding: 13px 8px;
-    color: #fff;
     font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-align: center;
+    font-weight: 500;
+  }
+  .site-header__nav a {
+    display: block;
+    padding: 10px 12px;
+    border-radius: 6px;
+    color: var(--color-text);
     text-decoration: none;
-    white-space: nowrap;
   }
-  .gnav__list a:hover,
-  .gnav__list a[aria-current] {
-    background: var(--color-main-dark);
-    color: #fff;
+  .site-header__nav a:hover {
+    background: var(--color-bg-tint);
+    color: var(--color-main-hover);
   }
-  /* キーボードで選んだ項目：青い帯の上でも見えるよう、濃い地に白い枠を内側に描く */
-  .gnav__list a:focus-visible {
-    background: var(--color-main-dark);
-    color: #fff;
-    outline: 3px solid #fff;
-    outline-offset: -5px;
-  }
-
-  @media (max-width: 760px) {
-    .site-header__util {
-      display: none;
-    }
+  .site-header__nav a[aria-current] {
+    color: var(--color-main);
+    box-shadow: inset 0 -3px 0 var(--color-main);
+    border-radius: 0;
   }
   @media (max-width: 640px) {
-    .site-header__inner {
-      padding-top: 12px;
-      padding-bottom: 12px;
-    }
-    .brand {
-      gap: 10px;
-    }
-    .brand__mark {
-      width: 46px;
-      height: 46px;
-      font-size: 13px;
-    }
-    .brand__name {
-      font-size: 18px;
-      letter-spacing: 0.02em;
-    }
-    .brand__sub {
-      font-size: 12px;
-    }
     /* スマートフォンでは「ホーム」を隠し、残り 4 項目を 1 行に収める（会の名前のリンクでホームに戻れる） */
-    .gnav__home {
+    .site-header__home {
       display: none;
     }
-    .gnav__list {
-      padding: 0;
+    .site-header__nav {
+      font-size: 14px;
+      margin: 0 -10px;
     }
-    .gnav__list li:nth-child(2) {
-      border-left: 0;
-    }
-    .gnav__list li:last-child {
-      border-right: 0;
-    }
-    .gnav__list li {
-      flex: 1 1 auto;
-    }
-    .gnav__list a {
-      padding: 11px 4px;
-      font-size: 13.5px;
-      letter-spacing: 0;
+    .site-header__nav a {
+      padding: 8px 10px;
     }
   }
 </style>

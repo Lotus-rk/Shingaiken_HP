@@ -1,29 +1,36 @@
 ---
 // 次回の研究会のお知らせ（淡い黄色の枠に、年・月日・曜日の日付札を添える）。トップと研究会一覧で共用。
 // 予定がないときも同じ枠で「準備中」を出す。予定が 2 件以上あるときは、2 件目以降を枠の下の方に短く並べる。
+// 見出しは、トップでは枠の中の小さな見出し（labelInside）、研究会一覧ではほかの節と同じ下線付きの見出しにする。
 import { site } from '../data/site';
 import { withBase } from '../lib/url';
 import EventList from './EventList.astro';
-import { eventPath, formatDateTimeRange, formatFee, formatLabel, jstParts, kindOf, toJstIso, type EventEntry } from '../lib/events';
+import { dateTimeRangeParts, eventPath, formatFee, formatLabel, jstParts, kindOf, toJstIso, type EventEntry } from '../lib/events';
 
 interface Props {
   /** これからの研究会（開催日の早い順）。先頭を大きく出す */
   events: EventEntry[];
-  /** 枠の上の見出し */
+  /** 見出し */
   title?: string;
-  /** 見出しの id（ページ内リンク用） */
+  /** 見出しの id */
   headingId?: string;
+  /** 枠全体の id（ページ内リンク用。例：トップの「次回の研究会」ボタンの行き先） */
+  id?: string;
+  /** true なら見出しを枠の中に小さく置く（トップ用） */
+  labelInside?: boolean;
   /** 2 件目以降の小見出し */
   othersTitle?: string;
-  /** 準備中のときに添える、過去の研究会へのリンク */
-  pastLink?: { href: string; label: string };
+  /** 準備中のときに添える、過去の研究会へのリンク。null なら出さない（すぐ下に記録が続くトップ用） */
+  pastLink?: { href: string; label: string } | null;
 }
 const {
   events,
   title = '次回の研究会',
   headingId = 'next-title',
-  othersTitle = 'これからの研究会',
-  pastLink = { href: '/events/#past-title', label: '過去の研究会' },
+  id,
+  labelInside = false,
+  othersTitle = 'その後の予定',
+  pastLink = { href: '/events/#past-title', label: '過去の研究会を見る' },
 } = Astro.props;
 
 const event = events[0];
@@ -36,15 +43,18 @@ const place = event
   : undefined;
 const fee = event ? formatFee(event.data.fee) : undefined;
 const kind = event ? kindOf(event) : undefined;
+const othersId = `${headingId}-others`;
 ---
 
-<section class="next" aria-labelledby={headingId}>
-  <h2 class="section-title" id={headingId}>{title}</h2>
+<section class="next" id={id} aria-labelledby={headingId}>
+  {!labelInside && <h2 class="section-title" id={headingId}>{title}</h2>}
   <div class="next__box">
+    {labelInside && <h2 class="next__label" id={headingId}>{title}</h2>}
     {
       event && p && kind ? (
         <>
-          <div class="next__grid">
+          {/* 並び（HTML の順のまま）：日付札・種別と題名・日時などの表・申込ボタン。広い画面では札を左、ボタンを右に置く */}
+          <div class="next__main">
             {/* 日付札。読み上げでは下の「日時」を読むので、ここは隠す */}
             <p class="next__stamp" aria-hidden="true">
               <span class="next__stamp-year">{p.year}</span>
@@ -53,7 +63,7 @@ const kind = event ? kindOf(event) : undefined;
               </span>
               <span class="next__stamp-wd">{p.weekday}曜日</span>
             </p>
-            <div class="next__body">
+            <div class="next__head">
               <p class="next__kind">
                 <span class={`kind ${kind.className}`}>{kind.label}</span>
               </p>
@@ -61,11 +71,20 @@ const kind = event ? kindOf(event) : undefined;
                 <a href={withBase(eventPath(event))}>{event.data.title}</a>
               </h3>
               {event.data.subtitle && <p class="next__subtitle">{event.data.subtitle}</p>}
+            </div>
+            <div class="next__details">
               <dl class="next__meta">
                 <div>
                   <dt>日時</dt>
                   <dd>
-                    <time datetime={toJstIso(event.data.start)}>{formatDateTimeRange(event.data.start, event.data.end)}</time>
+                    <time datetime={toJstIso(event.data.start)}>
+                      {dateTimeRangeParts(event.data.start, event.data.end).map((part, i) => (
+                        <>
+                          {i > 0 && ' '}
+                          <span class="nowrap">{part}</span>
+                        </>
+                      ))}
+                    </time>
                   </dd>
                 </div>
                 <div>
@@ -79,32 +98,34 @@ const kind = event ? kindOf(event) : undefined;
                   </div>
                 )}
               </dl>
-              <p class="next__actions">
-                {event.data.apply && (
-                  <a class="button button--primary" href={event.data.apply} rel="noopener">
-                    Peatixで申し込む
-                  </a>
-                )}
-                <a class="text-link" href={withBase(eventPath(event))}>詳しい内容 <span aria-hidden="true">›</span></a>
+              <p class="next__more">
+                <a class="text-link" href={withBase(eventPath(event))}>詳しい内容を見る <span aria-hidden="true">›</span></a>
               </p>
             </div>
+            {event.data.apply && (
+              <p class="next__apply">
+                <a class="button button--primary" href={event.data.apply} rel="noopener">Peatixで申し込む</a>
+              </p>
+            )}
           </div>
           {others.length > 0 && (
             <div class="next__others">
-              <h3 class="next__others-title">{othersTitle}</h3>
-              <EventList events={others} label={othersTitle} />
+              <h3 class="next__others-title" id={othersId}>{othersTitle}</h3>
+              <EventList events={others} labelledby={othersId} />
             </div>
           )}
         </>
       ) : (
-        <>
+        <div class="next__empty-body">
           <p class="next__empty">次回の研究会は準備中です。決まり次第、このサイトとSNSでお知らせします。</p>
           <p class="next__links">
             <a class="text-link" href={site.sns.instagram} rel="noopener">Instagram</a>
             <a class="text-link" href={site.sns.x} rel="noopener">X</a>
-            <a class="text-link" href={withBase(pastLink.href)}>{pastLink.label} <span aria-hidden="true">›</span></a>
+            {pastLink && (
+              <a class="text-link" href={withBase(pastLink.href)}>{pastLink.label} <span aria-hidden="true">›</span></a>
+            )}
           </p>
-        </>
+        </div>
       )
     }
   </div>
@@ -112,38 +133,48 @@ const kind = event ? kindOf(event) : undefined;
 
 <style>
   .next__box {
-    padding: 20px 24px;
+    --next-line: #ecdba6;
+    padding: 32px;
     background: var(--color-next-bg);
-    border: 1px solid var(--color-next-line);
-    border-top: 4px solid #e3b84a;
+    border-radius: var(--radius-box);
   }
-  .next__grid {
+  /* 広い画面：左に日付札（2 行分）、中に題名と表、右に申込ボタン */
+  .next__main {
     display: grid;
-    grid-template-columns: 108px minmax(0, 1fr);
-    gap: 16px 22px;
-    align-items: start;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'stamp head apply'
+      'stamp details apply';
+    align-items: center;
+    gap: 0 32px;
   }
-  /* 日付札：上に年の帯、中央に月日、下に曜日 */
+  /* 日付札：白い角丸の札に、年・月日・曜日 */
   .next__stamp {
+    grid-area: stamp;
     display: flex;
     flex-direction: column;
-    margin: 4px 0 0;
+    align-items: center;
+    justify-content: center;
+    width: 128px;
+    min-height: 120px;
+    margin: 0;
+    padding: 12px 6px;
     background: #fff;
-    border: 1px solid var(--color-next-line);
+    border-radius: 12px;
+    line-height: 1.25;
     text-align: center;
-    line-height: 1.2;
   }
-  .next__stamp-year {
-    padding: 3px 0;
-    background: var(--color-next-label);
-    color: #fff;
+  .next__stamp-year,
+  .next__stamp-wd {
     font-size: 13px;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
+    color: var(--color-next-label);
   }
   .next__stamp-md {
-    padding: 8px 0 4px;
-    font-size: 23px;
+    margin: 4px 0;
+    font-family: var(--font-heading);
+    font-size: 30px;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     color: var(--color-text);
@@ -151,25 +182,34 @@ const kind = event ? kindOf(event) : undefined;
   }
   .next__stamp-md small {
     margin: 0 1px;
-    font-size: 12px;
-    font-weight: 500;
+    font-size: 14px;
   }
-  .next__stamp-wd {
-    padding: 0 0 7px;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--color-next-label);
-  }
-  .next__body {
+  .next__head {
+    grid-area: head;
+    align-self: end;
     min-width: 0;
+  }
+  .next__details {
+    grid-area: details;
+    align-self: start;
+    min-width: 0;
+  }
+  .next__label {
+    margin: -8px 0 14px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--color-next-label);
   }
   .next__kind {
     margin: 0 0 4px;
   }
   .next__title {
-    margin: 0 0 4px;
-    font-size: 21px;
+    margin: 0 0 8px;
+    font-size: 24px;
     line-height: 1.55;
+    line-break: strict;
   }
   .next__title a {
     color: var(--color-text);
@@ -180,55 +220,65 @@ const kind = event ? kindOf(event) : undefined;
     text-decoration: underline;
   }
   .next__subtitle {
-    margin: 0 0 4px;
+    margin: 0 0 8px;
     color: var(--color-text-sub);
   }
-  /* 日時・形式などは表のように左に項目名をそろえる */
   .next__meta {
-    margin: 12px 0 16px;
-    border-top: 1px solid var(--color-next-line);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 24px;
+    margin: 0 0 8px;
     font-size: 15px;
+    color: var(--color-text-sub);
   }
   .next__meta div {
-    display: grid;
-    grid-template-columns: 4.5em 1fr;
-    gap: 12px;
-    padding: 6px 0;
-    border-bottom: 1px solid var(--color-next-line);
+    display: flex;
+    gap: 8px;
   }
   .next__meta dt {
+    flex: 0 0 auto;
     font-weight: 700;
     color: var(--color-next-label);
   }
   .next__meta dd {
     margin: 0;
   }
-  .next__actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px 24px;
+  .next__more,
+  .next__apply {
     margin: 0;
+  }
+  .next__apply {
+    grid-area: apply;
+  }
+  .next__apply .button {
+    padding: 14px 28px;
   }
   /* 2 件目以降の予定 */
   .next__others {
-    margin-top: 20px;
-    padding-top: 12px;
-    border-top: 1px solid var(--color-next-line);
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--next-line);
   }
   .next__others-title {
-    margin: 0 0 8px;
-    font-size: 15px;
+    margin: 0 0 4px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    letter-spacing: 0.04em;
     color: var(--color-next-label);
   }
   .next__others :global(.event-list) {
     border-top: 0;
   }
   .next__others :global(.event-list li) {
-    border-color: var(--color-next-line);
+    border-color: var(--next-line);
+  }
+  .next__others :global(.event-list li:last-child) {
+    border-bottom: 0;
   }
   .next__empty {
-    margin: 0 0 8px;
+    margin: 0 0 12px;
+    font-size: 17px;
+    color: var(--color-text);
   }
   .next__links {
     display: flex;
@@ -236,40 +286,74 @@ const kind = event ? kindOf(event) : undefined;
     gap: 4px 24px;
     margin: 0;
   }
+  /* 中くらいの画面：申込ボタンを下の行へ */
+  @media (max-width: 900px) {
+    .next__main {
+      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-areas:
+        'stamp head'
+        'stamp details'
+        'apply apply';
+    }
+    .next__apply {
+      margin-top: 20px;
+    }
+  }
+  /* スマートフォン：小さめの札の右に種別と題名。表とボタンは下に全幅で */
   @media (max-width: 640px) {
     .next__box {
-      padding: 16px;
+      padding: 24px 20px;
     }
-    .next__grid {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 12px;
+    .next__main {
+      grid-template-columns: 84px minmax(0, 1fr);
+      grid-template-areas:
+        'stamp head'
+        'details details'
+        'apply apply';
+      align-items: start;
+      gap: 0 14px;
     }
-    /* 狭い画面では日付札を横長にする */
     .next__stamp {
-      flex-direction: row;
-      align-items: stretch;
-      justify-self: start;
-      margin: 0;
+      width: 84px;
+      min-height: 0;
+      padding: 8px 2px;
+      border-radius: 10px;
     }
-    .next__stamp-year {
-      display: flex;
-      align-items: center;
-      padding: 0 10px;
+    .next__stamp-year,
+    .next__stamp-wd {
+      font-size: 12px;
+      letter-spacing: 0.02em;
     }
     .next__stamp-md {
-      padding: 4px 12px;
-      font-size: 20px;
+      margin: 2px 0;
+      font-size: 19px;
     }
-    .next__stamp-wd {
-      display: flex;
-      align-items: center;
-      padding: 0 12px 0 0;
+    .next__stamp-md small {
+      margin: 0;
+      font-size: 11px;
+    }
+    .next__head {
+      align-self: center;
     }
     .next__title {
-      font-size: 18px;
+      margin-bottom: 0;
+      font-size: 19px;
     }
-    .next__actions .button {
-      flex: 1 1 100%;
+    .next__subtitle {
+      margin: 6px 0 0;
+      font-size: 15px;
+    }
+    .next__details {
+      margin-top: 16px;
+    }
+    .next__meta {
+      flex-direction: column;
+    }
+    .next__apply {
+      margin-top: 16px;
+    }
+    .next__apply .button {
+      display: block;
       text-align: center;
     }
   }

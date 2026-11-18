@@ -1,6 +1,6 @@
 ---
 // 研究会ページの「開催情報」の箱に入れる表（日時・形式・会場・参加費・申込・登壇者）。項目があるものだけを出す。
-import { formatDateTimeRange, formatFee, formatLabel, type EventEntry } from '../../lib/events';
+import { dateTimeRangeParts, formatFee, formatLabel, type EventEntry } from '../../lib/events';
 
 interface Props {
   entry: EventEntry;
@@ -15,7 +15,14 @@ const fee = formatFee(d.fee);
 <dl class="facts">
   <div class="facts__row">
     <dt>日時</dt>
-    <dd>{formatDateTimeRange(d.start, d.end)}</dd>
+    <dd>
+      {dateTimeRangeParts(d.start, d.end).map((part, i) => (
+        <>
+          {i > 0 && ' '}
+          <span class="nowrap">{part}</span>
+        </>
+      ))}
+    </dd>
   </div>
   <div class="facts__row">
     <dt>形式</dt>
@@ -68,16 +75,16 @@ const fee = formatFee(d.fee);
 </dl>
 
 <style>
-  /* 開催情報の箱の中の表：左に項目名、行の間に細い罫線 */
+  /* 開催情報の箱（淡い水色の地）の中の表：左に項目名、行の間に細い罫線 */
   .facts {
     margin: 0;
   }
   .facts__row {
     display: grid;
-    grid-template-columns: 4.5em minmax(0, 1fr);
-    gap: 4px 10px;
-    padding: 9px 2px;
-    border-bottom: 1px solid var(--color-line);
+    grid-template-columns: 4em minmax(0, 1fr);
+    gap: 4px 12px;
+    padding: 10px 2px;
+    border-bottom: 1px solid #d5e2ed;
   }
   .facts__row:last-child {
     border-bottom: 0;
@@ -88,6 +95,9 @@ const fee = formatFee(d.fee);
   }
   dd {
     margin: 0;
+    /* 会場名などを語の切れ目で改行し、「校」だけが次の行に落ちないようにする（対応ブラウザのみ） */
+    line-break: strict;
+    word-break: auto-phrase;
   }
   .facts__note {
     display: block;
